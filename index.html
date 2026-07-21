@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Histórico de Filtrado DLC-2</title>
+<style>
+:root{--bg:#111518;--panel:#1b2025;--panel2:#20262c;--line:#323941;--ink:#f3f5ef;--muted:#aeb6aa;--dim:#7d867b;--sage:#b8b596;--cyan:#5cb3cc;--blue:#6ea7d9;--green:#60bd8d;--amber:#e1a64d;--red:#df7568;--violet:#a98fd2;--vivid:#00e5c7;--shadow:0 6px 24px rgba(0,0,0,.28);--r:15px}
+*{box-sizing:border-box;margin:0;padding:0} body{background:radial-gradient(circle at 20% -10%,#1c252b 0,#111518 34%),var(--bg);color:var(--ink);font-family:'Poppins','Inter','Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{position:sticky;top:0;z-index:50;background:rgba(17,21,24,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.head-in{max-width:1320px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap} .brand{display:flex;align-items:center;gap:12px} .brand img{height:40px;width:auto;background:white;border-radius:7px;padding:3px} .brand .titles{border-left:1px solid var(--line);padding-left:14px} .brand h1{font-weight:850;font-size:20px;letter-spacing:.01em;line-height:1.1} .brand span{font-size:11px;color:var(--sage);text-transform:uppercase;letter-spacing:.12em} .period{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:7px 12px;font-size:12px;color:var(--muted)}
+.synctag{border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+.synctag .dot2{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.synctag.ok{color:var(--green);border-color:rgba(96,189,141,.35)} .synctag.ok .dot2{background:var(--green)}
+.synctag.warn{color:var(--amber);border-color:rgba(225,166,77,.35)} .synctag.warn .dot2{background:var(--amber)}
+.synctag.loading{color:var(--muted)} .synctag.loading .dot2{background:var(--muted);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.frefresh{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700} .frefresh:hover{border-color:var(--vivid)}
+.tabs{max-width:1320px;margin:0 auto;padding:0 22px;display:flex;gap:4px;border-bottom:1px solid var(--line);position:sticky;top:69px;z-index:40;background:#111518;overflow:auto} .tab{background:transparent;border:none;color:var(--dim);font-family:inherit;font-weight:750;font-size:14px;letter-spacing:.02em;padding:15px 16px 13px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap} .tab.on{color:var(--ink);border-bottom-color:var(--vivid)}
+.filterbar{max-width:1320px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#14181b}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup .flabel{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:800;margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.chip.on{background:var(--vivid);color:#06231f;border-color:var(--vivid)}
+.fselect{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit}
+input[type="date"].fselect{color-scheme:dark}
+.presetchip{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit} .presetchip:hover{border-color:var(--vivid);color:var(--ink)}
+.freset{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit} .freset:hover{color:var(--ink);border-color:var(--muted)}
+main{max-width:1320px;margin:0 auto;padding:22px} .panel{display:none} .panel.on{display:block} .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.kpis5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px}
+.kpi .subline{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap} .kpi .subline span{font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;padding:2px 7px} .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;position:relative;overflow:hidden} .card:before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;background:var(--sage);opacity:.9} .card.cyan:before{background:var(--cyan)} .card.green:before{background:var(--green)} .card.amber:before{background:var(--amber)} .card.blue:before{background:var(--blue)} .card.violet:before{background:var(--violet)}
+.kpi .label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.13em;font-weight:800} .kpi .value{font-size:26px;font-weight:850;margin-top:8px;line-height:1} .kpi .sub{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
+.lower-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px} .chart-card h2,.table-card h2{font-size:17px;margin-bottom:5px} .chart-card p,.table-card p{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.45} .chart{height:390px;width:100%;overflow:hidden} .chart.small{height:350px} .chart svg{width:100%;height:100%;display:block;min-width:0}.chart.small svg{min-width:0} svg text{font-family:inherit} .axis{stroke:#596169;stroke-width:1} .gridline{stroke:#303740;stroke-width:1} .tick{fill:#aeb4aa;font-size:11px} .axis-title{fill:#7d867b;font-size:11px} .tooltip-label{fill:var(--ink);font-size:12px;font-weight:800} .vline{stroke:var(--amber);stroke-width:2;stroke-dasharray:6 5}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;color:var(--muted);font-size:12px} .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px} table{width:100%;border-collapse:collapse;font-size:12px} th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:right} th:first-child,td:first-child{text-align:left} th{color:var(--dim);text-transform:uppercase;letter-spacing:.08em;font-size:11px} td{color:var(--ink)} .note{border-left:3px solid var(--sage);padding-left:12px;color:var(--muted);font-size:13px;line-height:1.45;margin-top:10px} .pos{color:var(--green);font-weight:800} .warn{color:var(--amber);font-weight:800} .bad{color:var(--red);font-weight:800} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px} .stack{display:flex;flex-direction:column;gap:14px}
+.miniStats{display:flex;gap:28px;margin:8px 0 14px;flex-wrap:wrap} .miniStat .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:800} .miniStat .v{font-size:23px;font-weight:850;margin-top:5px} .miniStat .d{font-size:12px;color:var(--muted);margin-top:4px}
+.plateTag{display:inline-block;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--muted);margin-left:8px;font-weight:700;vertical-align:middle}
+@media(max-width:1050px){.kpis,.kpis5,.lower-kpis,.grid2{grid-template-columns:1fr}.tabs{top:86px}.brand h1{font-size:18px}.chart{height:360px}.head-in{padding:12px 14px}main{padding:14px}.tabs{padding:0 14px}.kpi .value{font-size:24px}.chart-card h2,.table-card h2{font-size:16px}}
+@media(max-width:640px){.brand img{height:34px}.brand .titles{padding-left:10px}.brand h1{font-size:15px}.brand span{font-size:9px}.period{display:none}.tab{font-size:12px;padding:12px 11px}.card{padding:13px;border-radius:13px}.chart{height:320px}.chart.small{height:300px}.tick{font-size:9px}.axis-title{font-size:10px}.filterbar{padding:10px 14px;gap:10px}}
+</style>
+</head>
+<body>
+<header class="header"><div class="head-in"><div class="brand"><img id="logo" alt="Pucobre"><div class="titles"><h1>Dashboard Histórico de Filtrado DLC-2</h1><span>Análisis de relave filtrado</span></div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div class="synctag loading" id="syncStatus"><span class="dot2"></span><span>Sincronizando…</span></div><div class="period" id="periodTag">—</div></div></div></header>
+<nav class="tabs">
+ <button class="tab on" data-tab="resumen">Resumen</button>
+ <button class="tab" data-tab="ceramico">Filtros Cerámicos</button>
+ <button class="tab" data-tab="f1">Filtro Cerámico 1</button>
+ <button class="tab" data-tab="f2">Filtro Cerámico 2</button>
+ <button class="tab" data-tab="f3">Filtro Cerámico 3</button>
+ <button class="tab" data-tab="f4">Filtro Cerámico 4</button>
+ <button class="tab" data-tab="prensa">Filtros Prensa</button>
+ <button class="tab" data-tab="cambio">Cambio de Placas</button>
+ <button class="tab" data-tab="tabla">Tabla base</button>
+</nav>
+<div class="filterbar">
+ <div class="fgroup"><span class="flabel">Años</span><div id="yearChips"></div></div>
+ <div class="fgroup"><span class="flabel">Desde</span><input type="date" id="fromSel" class="fselect"></div>
+ <div class="fgroup"><span class="flabel">Hasta</span><input type="date" id="toSel" class="fselect"></div>
+ <button class="freset" id="resetBtn">Restablecer filtros</button>
+ <button class="frefresh" id="refreshBtn">⟳ Actualizar datos</button>
+</div>
+<main>
+
+<section id="resumen" class="panel on">
+ <div class="kpis">
+  <div class="card kpi cyan"><div class="label">Filtrado total</div><div class="value" id="k_total"></div><div class="sub" id="k_total_sub">Período filtrado</div></div>
+  <div class="card kpi green"><div class="label">Filtrado cerámico</div><div class="value" id="k_cer"></div><div class="sub" id="k_cer_sub"></div></div>
+  <div class="card kpi amber"><div class="label">Filtrado prensa</div><div class="value" id="k_press"></div><div class="sub"><span id="k_share"></span> del total</div></div>
+  <div class="card kpi violet"><div class="label">Ciclos filtros prensa</div><div class="value" id="k_ciclos"></div><div class="sub">FP1 + FP2, período filtrado</div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado total mensual</h2><p>Toneladas totales de relave filtrado por mes. Las líneas segmentadas marcan el cambio de año.</p><div id="chartTotal" class="chart"></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Filtrado total por año</h2><p>Comparación anual, según los años activos en el filtro (no depende del rango de meses).</p><div id="chartAnnual" class="chart small"></div></div>
+  <div class="card table-card"><h2>Lectura rápida</h2><p>Indicadores clave del período filtrado.</p><div id="quick"></div></div>
+ </div>
+</section>
+
+<section id="ceramico" class="panel">
+ <div class="kpis5">
+  <div class="card kpi cyan"><div class="label">Filtrado total filtros cerámicos</div><div class="value" id="kc_total"></div><div class="sub" id="kc_total_sub">Período filtrado</div></div>
+  <div class="card kpi cyan"><div class="label">Filtro 1</div><div class="value" id="kc_f1_total"></div><div class="subline"><span id="kc_f1_tph"></span><span id="kc_f1_util"></span></div></div>
+  <div class="card kpi green"><div class="label">Filtro 2</div><div class="value" id="kc_f2_total"></div><div class="subline"><span id="kc_f2_tph"></span><span id="kc_f2_util"></span></div></div>
+  <div class="card kpi amber"><div class="label">Filtro 3</div><div class="value" id="kc_f3_total"></div><div class="subline"><span id="kc_f3_tph"></span><span id="kc_f3_util"></span></div></div>
+  <div class="card kpi violet"><div class="label">Filtro 4</div><div class="value" id="kc_f4_total"></div><div class="subline"><span id="kc_f4_tph"></span><span id="kc_f4_util"></span></div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado cerámico total mensual</h2><p>Toneladas mensuales filtradas por los 4 filtros cerámicos en conjunto.</p><div id="chartCerTotal" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Filtrado cerámico total por año</h2><p>Comparación anual del tonelaje filtrado por los filtros cerámicos.</p><div id="chartCerAnnual" class="chart small"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Filtrado cerámico por filtro (F1–F4)</h2><p>Evolución del tonelaje filtrado por cada uno de los 4 filtros cerámicos.</p><div id="chartByFilter" class="chart"></div><div class="legend"><span><i class="dot" style="background:var(--cyan)"></i>F1</span><span><i class="dot" style="background:var(--green)"></i>F2</span><span><i class="dot" style="background:var(--amber)"></i>F3</span><span><i class="dot" style="background:var(--violet)"></i>F4</span></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Tasa de filtrado (TPH) por filtro</h2><p>Promedio mensual de toneladas por hora, ponderado por horas de operación.</p><div id="chartTph" class="chart"></div><div class="legend"><span><i class="dot" style="background:var(--cyan)"></i>F1</span><span><i class="dot" style="background:var(--green)"></i>F2</span><span><i class="dot" style="background:var(--amber)"></i>F3</span><span><i class="dot" style="background:var(--violet)"></i>F4</span></div></div>
+  <div class="card chart-card"><h2>Utilización promedio (4 filtros)</h2><p>Promedio mensual combinado de utilización de los 4 filtros cerámicos.</p><div id="chartUtilAvg" class="chart"></div></div>
+ </div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Agua recuperada por filtro</h2><p>Aporte porcentual de cada filtro cerámico a la recuperación total de agua, en el período filtrado.</p><div id="chartAgua" class="chart"></div><div class="legend"><span><i class="dot" style="background:var(--cyan)"></i>F1</span><span><i class="dot" style="background:var(--green)"></i>F2</span><span><i class="dot" style="background:var(--amber)"></i>F3</span><span><i class="dot" style="background:var(--violet)"></i>F4</span></div></div>
+</section>
+
+<section id="f1" class="panel">
+ <div class="kpis">
+  <div class="card kpi cyan"><div class="label">Filtrado Filtro Cerámico 1</div><div class="value" id="kf1_total"></div><div class="sub" id="kf1_total_sub">Período filtrado</div></div>
+  <div class="card kpi cyan"><div class="label">Utilización promedio</div><div class="value" id="kf1_util"></div><div class="sub">Promedio del período</div></div>
+  <div class="card kpi cyan"><div class="label">TPH promedio</div><div class="value" id="kf1_tph"></div><div class="sub">Ponderado por horas</div></div>
+  <div class="card kpi cyan"><div class="label">Agua recuperada</div><div class="value" id="kf1_agua"></div><div class="sub">Período filtrado</div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado — Filtro Cerámico 1</h2><p>Toneladas mensuales filtradas.</p><div id="chartFiltradoF1" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Tasa de filtrado (TPH) — Filtro Cerámico 1</h2><p>Promedio mensual de toneladas por hora, ponderado por horas de operación.</p><div id="chartTasaF1" class="chart"></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Utilización — Filtro Cerámico 1</h2><p>Porcentaje mensual de utilización del equipo.</p><div id="chartUtilF1" class="chart"></div></div>
+  <div class="card chart-card"><h2>Agua recuperada — Filtro Cerámico 1</h2><p>Metros cúbicos mensuales de agua recuperada.</p><div id="chartAguaF1" class="chart"></div></div>
+ </div>
+</section>
+
+<section id="f2" class="panel">
+ <div class="kpis">
+  <div class="card kpi green"><div class="label">Filtrado Filtro Cerámico 2</div><div class="value" id="kf2_total"></div><div class="sub" id="kf2_total_sub">Período filtrado</div></div>
+  <div class="card kpi green"><div class="label">Utilización promedio</div><div class="value" id="kf2_util"></div><div class="sub">Promedio del período</div></div>
+  <div class="card kpi green"><div class="label">TPH promedio</div><div class="value" id="kf2_tph"></div><div class="sub">Ponderado por horas</div></div>
+  <div class="card kpi green"><div class="label">Agua recuperada</div><div class="value" id="kf2_agua"></div><div class="sub">Período filtrado</div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado — Filtro Cerámico 2</h2><p>Toneladas mensuales filtradas.</p><div id="chartFiltradoF2" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Tasa de filtrado (TPH) — Filtro Cerámico 2</h2><p>Promedio mensual de toneladas por hora, ponderado por horas de operación.</p><div id="chartTasaF2" class="chart"></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Utilización — Filtro Cerámico 2</h2><p>Porcentaje mensual de utilización del equipo.</p><div id="chartUtilF2" class="chart"></div></div>
+  <div class="card chart-card"><h2>Agua recuperada — Filtro Cerámico 2</h2><p>Metros cúbicos mensuales de agua recuperada.</p><div id="chartAguaF2" class="chart"></div></div>
+ </div>
+</section>
+
+<section id="f3" class="panel">
+ <div class="kpis">
+  <div class="card kpi amber"><div class="label">Filtrado Filtro Cerámico 3</div><div class="value" id="kf3_total"></div><div class="sub" id="kf3_total_sub">Período filtrado</div></div>
+  <div class="card kpi amber"><div class="label">Utilización promedio</div><div class="value" id="kf3_util"></div><div class="sub">Promedio del período</div></div>
+  <div class="card kpi amber"><div class="label">TPH promedio</div><div class="value" id="kf3_tph"></div><div class="sub">Ponderado por horas</div></div>
+  <div class="card kpi amber"><div class="label">Agua recuperada</div><div class="value" id="kf3_agua"></div><div class="sub">Período filtrado</div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado — Filtro Cerámico 3</h2><p>Toneladas mensuales filtradas.</p><div id="chartFiltradoF3" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Tasa de filtrado (TPH) — Filtro Cerámico 3</h2><p>Promedio mensual de toneladas por hora, ponderado por horas de operación.</p><div id="chartTasaF3" class="chart"></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Utilización — Filtro Cerámico 3</h2><p>Porcentaje mensual de utilización del equipo.</p><div id="chartUtilF3" class="chart"></div></div>
+  <div class="card chart-card"><h2>Agua recuperada — Filtro Cerámico 3</h2><p>Metros cúbicos mensuales de agua recuperada.</p><div id="chartAguaF3" class="chart"></div></div>
+ </div>
+</section>
+
+<section id="f4" class="panel">
+ <div class="kpis">
+  <div class="card kpi violet"><div class="label">Filtrado Filtro Cerámico 4</div><div class="value" id="kf4_total"></div><div class="sub" id="kf4_total_sub">Período filtrado</div></div>
+  <div class="card kpi violet"><div class="label">Utilización promedio</div><div class="value" id="kf4_util"></div><div class="sub">Promedio del período</div></div>
+  <div class="card kpi violet"><div class="label">TPH promedio</div><div class="value" id="kf4_tph"></div><div class="sub">Ponderado por horas</div></div>
+  <div class="card kpi violet"><div class="label">Agua recuperada</div><div class="value" id="kf4_agua"></div><div class="sub">Período filtrado</div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado — Filtro Cerámico 4</h2><p>Toneladas mensuales filtradas.</p><div id="chartFiltradoF4" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Tasa de filtrado (TPH) — Filtro Cerámico 4</h2><p>Promedio mensual de toneladas por hora, ponderado por horas de operación.</p><div id="chartTasaF4" class="chart"></div></div>
+ <div class="grid2" style="margin-top:14px">
+  <div class="card chart-card"><h2>Utilización — Filtro Cerámico 4</h2><p>Porcentaje mensual de utilización del equipo.</p><div id="chartUtilF4" class="chart"></div></div>
+  <div class="card chart-card"><h2>Agua recuperada — Filtro Cerámico 4</h2><p>Metros cúbicos mensuales de agua recuperada.</p><div id="chartAguaF4" class="chart"></div></div>
+ </div>
+</section>
+
+<section id="prensa" class="panel">
+ <div class="kpis">
+  <div class="card kpi amber"><div class="label">Filtrado por prensa</div><div class="value" id="kp_total"></div><div class="sub" id="kp_total_sub">Período filtrado</div></div>
+  <div class="card kpi violet"><div class="label">Ciclos totales</div><div class="value" id="kp_ciclos"></div><div class="sub">FP1 + FP2</div></div>
+  <div class="card kpi cyan"><div class="label">Ciclos FP1</div><div class="value" id="kp_fp1"></div><div class="sub" id="kp_fp1_sub"></div></div>
+  <div class="card kpi green"><div class="label">Ciclos FP2</div><div class="value" id="kp_fp2"></div><div class="sub" id="kp_fp2_sub"></div></div>
+ </div>
+ <div class="card chart-card"><h2>Filtrado general por prensa</h2><p>Toneladas mensuales filtradas por los filtros prensa (FP1 + FP2 combinados).</p><div id="chartPressTotal" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Ciclos por filtro prensa: FP1 vs FP2</h2><p>Comparación mensual de ciclos operados.</p><div id="chartCycles" class="chart"></div><div class="legend"><span><i class="dot" style="background:var(--cyan)"></i>FP1</span><span><i class="dot" style="background:var(--green)"></i>FP2</span></div></div>
+</section>
+
+<section id="cambio" class="panel">
+ <div class="note" style="margin-top:0;margin-bottom:14px">El gráfico muestra la tasa de filtrado (TPH) mensual desde 2 meses antes del cambio hasta el dato más reciente, con la línea vertical marcando la fecha del cambio. Los recuadros de "antes"/"actual" se calculan día por día desde la fecha exacta del cambio (no por mes) cuando el dashboard está sincronizado con el Google Sheet; si se está usando el respaldo sin conexión, se muestra una aproximación mensual. Esta pestaña no se ve afectada por los filtros de año/mes de arriba.</div>
+ <div class="card chart-card"><h2>Filtro 1 <span class="plateTag" id="cp1_tag"></span></h2><p>Tasa de filtrado (TPH) antes y después del cambio de placas.</p><div class="miniStats" id="cp1_stats"></div><div id="chartCambioF1" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Filtro 2 <span class="plateTag" id="cp2_tag"></span></h2><p>Tasa de filtrado (TPH) antes y después del cambio de placas.</p><div class="miniStats" id="cp2_stats"></div><div id="chartCambioF2" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Filtro 3 <span class="plateTag" id="cp3_tag"></span></h2><p>Tasa de filtrado (TPH) antes y después del cambio de placas.</p><div class="miniStats" id="cp3_stats"></div><div id="chartCambioF3" class="chart"></div></div>
+ <div class="card chart-card" style="margin-top:14px"><h2>Filtro 4 <span class="plateTag" id="cp4_tag"></span></h2><p>Tasa de filtrado (TPH) antes y después del cambio de placas.</p><div class="miniStats" id="cp4_stats"></div><div id="chartCambioF4" class="chart"></div></div>
+</section>
+
+<section id="tabla" class="panel">
+ <div class="card table-card"><h2>Tabla mensual consolidada</h2><p>Datos agregados desde REPORTE_TURNOS, según el período y años seleccionados.</p><div id="dataTable" style="overflow-x:auto"></div></div>
+</section>
+
+</main>
+<script>
+const LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAQAElEQVR4Aex9CWBU1dX/ve+9mSRA2AQErIpUXKqtdSn/aqUFpS6oqCxhScKqILs72loba+vnUhd2QYQkJCwBAcEVsdj6WVuXarGiovUTFxYBE5as85b/7zzyxskkmUwy8yaznPDO3PvuPfecc3/33t/c997MoAj+YwQYAUYgQRBgwkqQgeIwGQFGQAgmLJ4FjAAjkDAIMGElzFBFHihbYAQSHQEmrEQfQY6fEUghBJiwUmiwuauMQKIjwISV6CPI8TMCDSGQpGVMWEk6sNwtRiAZEWDCSsZR5T4xAkmKABNWkg4sd4sRSEYEmLAaGlUuYwQYgbhEgAkrLoeFg2IEGIGGEGDCaggVLmMEGIG4RIAJKy6HhYOKHQLsKZEQYMJKpNHiWBmBFEeACSvFJwB3nxFIJASYsBJptDhWRiDFEYiQsFIcPe4+I8AIxBQBJqyYws3OGAFGIBIEmLAiQY/bMgKMQEwRYMKKKdwJ7YyDZwRaHQEmrFYfAg6AEWAEwkWACStcpFiPEWAEWh0BJqxWHwIOgBGIPwTiNSImrHgdGY6LEWAE6iHAhFUPEi5gBBiBeEWACSteR4bjYgQYgXoIMGHVgyTyArbACDAC7iDAhOUOrmyVEWAEXECACcsFUNkkI8AIuIMAE5Y7uLLVVEGA+xlTBJiwYgo3O2MEGIFIEGDCigQ9bssIMAIxRYAJK6ZwszNGgBGIBIHWJaxIIue2jAAjkHIIMGGl3JBzhxmBxEWACStxx44jZwRSDgEmrJQb8tbqMPtlBCJHgAkrcgzZAiPACMQIASasGAHNbhgBRiByBJiwIseQLTACjEBdBFw7Y8JyDVo2zAgwAtFGIKUIy7IsT+GyeZcUFCwYVlg4dwgLY5DIc6CgYO6wjesKB02cOLxztIkhXu0p8RqYG3GtWrWkg+Y1Fno91cWqaqxgYQwSeQ54PUZRtX6ouHfvPhe6sV7i0WZKEdb//d8uVUrRSQrLqwizTZwKx8VjE9YckMJME6bR8biOnTPikVzciCmlCMvn8+KqUOiWJQQLY5AMcwCk4DMMYSJNiSOlCCslRpQ7yQgkMQJMWEk8uNy1+EeAI2weAkxYzcOLtRkBRqAVEWDCcgl8KaVQVU2oqhp3oqitG5OmaaKeeFTh8aoop9gUYEYihQIccQhHBP4C8zjlI4UQUFKorzHrqqJIYRnqVsunZ+mmMtQ0PMPjSfRWjMdnKMPNSivLqjJGWKYxQij6SEUzRqimml1TqkytNpS7fIb2oGF4Fhu6d51haVsN0/O2aWmfmqa6R0r1O1XVSjVNPaoqiqFIRUgpbVGUY/mYDTQ7ijkCSsw9RtFh3JqSAk+brZ0jx9y2Njt75vpROdPWxZPktGI8OTkz140cf/PaEeNuLRkx+taSrKzb1gwbdmvJ0FEzVmZPnrkoN3vmQzk5M+7uccKB6VpazRg80B1qmMqVNT7tl5ZU+tbo4lyj0jyv+pDnkhoj7UafqT5k6GqJEOorUir/sCxlnxBSqNhFKnjjEPyXVAgwYbk0nJYUadvy8jSXzCe92QED8vSsrFsrQXCHx46dfnD8+Gl7kf967Nibvxw1/pYvciZNezs3d+ry3NyZd+WMnTViVPasyyqqSgeYIm2oJdXJNbp1r2FqL0uplWM3Joi8pJRJj1uyd1BJ9g5y/1IHgfHj86pycqa8kZ09a0lu7i331/gyR5Yf1vtVVlg3WlJ7AxuuUiIuktRBJbl6yoSVXOOZvL1pQc/Gjx9fdsOU294bO+GWpVVV3w0sr1KvrqoxFtX4zG/okpE3XC0AtZWbMGG5NADSUvQBeXm6S+bZbDMRoN3XhAmz/j5u3B1Te57QZ1BlpfGwJZQyRZWCiauZYLaiOhOWS+BLS3Ze9+fFZxQWPnLKqlWP9yoqeuoHJSVzuy5evNjjkssWm6WYiouf7LNy5bwzSkoWnt6ULF8+pw/1i6S4eP7JK1Y83mPxyj93KSlZ0K7FQcSw4cCB124fN+G22ekZPfqrWsY6IRWTLxNjOAARuGLCigC8xpqahiUsr++Kyp4VzyuK93nTkJsUUbFRrxYlme2qCteseuKxlUVP3FdUNO/OFSsWXvf4huUdG7MVi3LTPO0Ej3JkrWWYL/uqfS80JV5NPKcp3k2a9GwSpo6+KevbmZ4So8YoLip8fPmK5Q89vKr4ifuLV8zJKy6eO7swf/6koqJFV+fnL/5hXl5e3My5IUNG/vvDD/eNUkSHCari/ZxJKxazLRwfjevEzeRpPMTErFGElalZVm9VGmcq0vixohjnK6reX1WMkejRLXjqfq8ifA9pSvWKnuWlrxWtmPvcmjVPZ91226QuqI/poZdnpmses7eqGichzt5hyGlSGmdLxTwbuj9Bu5+jXwOkog/2eMS4tIy0O9C/e1TV+r209Ac1zbdYlVXF6WmVL51+Wsf/LS5+4tXiFXOWFhUtzJkzZ06fp5+e13Pbtm2t8kQVBKqPGD2h4Os95Vdr3owXibSkjCn87KwZCDBhNQOs5qrST0McEyFM07LFwO7LMAxBIoQFk2Y7SxHnqIp+lTCPFP/svLP/smLF3MnvvPOOB5UxOQwwq2WJmmOxWqJ5qbD79X3/TKHrhvD5DJQbiB99lCZSsz0KTpXCvFAR5iUguolerXp5j+Pl22lp5htf79r+ZEHBY2PR934gkZjPy1tumf3R7t37RqpqxsOqqhrMWRiyODxiPjHiEINWDQlEgXVs2SQBEtOE1H/s0cwnt7+3Lb+kZGnC/pJknV0KOMvuJ16I2BxC1HVT03VfB1Xqvbxp5sR0r5KvSPPZM0/vtKmocO59q1Yt6hVL8po5M+/w8BFTZh8+Km5WFLVGStmqc4Od10eACas+Jq1aQgvaxA6sXTvP6MrqqsXvvDOpTfMCSjxt8Bh2nCbEELh87mRZ5lWaZtyriOrX+/Q+bsUzaxYPyFuelx6rnt1ww83zTTNtilS0KuasWKEenh8mrPBwirmWDtJK13zDtm8/65aYO29Fh0Repmli10li/EDVfKN9esWWU9t0XrNxY+GgWIU2KmfKsqrqQ1NVVeGdVqxAD8MPE1YYILWWCi3cNuli6rJlC05srRha0+8x8rKEaZmaxzAGV5QfXL2y6LH8p5566pRYxDVu3O+W79nX43ZNs0wp+fIwFpg35YMJqymEWrGeFixuafdMSzNuasUw4sK1gV2XFGamooixbduUb125et74WAQ2a9bIeYbheVRRrFi4a66PlNNnwor7IbeEKo2Lli9fHrN7OPEKCRG4iaetijB6S1NfurJwzkNz585Nczte3ez8x8pqbSvI0m1XbL8JBJiwmgCotastrFJsLn6qKEcubu1Y4sU/OEtYpqmomnVn1y7K4oKC+ce5GVtOTs7hL77oMUv1iF1S8qWhm1g3ZZsJqymEWrkefCXwzt5R05TerRxK3Lk3TENIUTM2PV19sqioqL2bAeblZe04fFjkSSl1yZwlWusvlQmrtTBvtl9FkcKorknJG+9NgUWXiJZRNUw1Sx/Zti1Pa0o/kvrevTuvVrS0Z/luViQoRtaWCSsy/GLS2sQ1oSmtvgcPHnR1FxGTzrjghPBRNGPSN19l3uGCeb/JAQPGV5WVWX+UQpbyLssPS0wzTFgxhbtlzug+lsejnrFh1apOLbOQ/K1MyxCaIu9dUrzscjd7O2nStPdVNWMxrkXddMO2G0GACasRYOKp2LKEUBXRaU9paco/KWxsXAgjoYj0dkbZvUuX1v9KU2PtWlSup60wdPENXaq3qD03ajECTFgthi62DVX8eb1YkrF1m1DeTNMSiiYv6tDBd4ObgWflTNihKOpqwdssEes/JqxYI95Cf1II2bmzEbNfcBAJ+mdhq2UZ+vSFCx9z9alqRtuuq0CQ+6TEyCQoVokYNhNWwoyaoQr1uJj/VlbCwFMbKBGWYfhO7NQp3dVPwl9/ffa7umG9W+uWkxghoITjh3VaHwHDElobKU9o/UgSJALTl7Vy5WJXCV5RPcul5CUUyxnBaMcS7Uh8WZZieYSrn+iOJLz4aot7WYrZu6bKN9zNuKTU/2WaYreUfFnoJs6BtpmwAtGI87xlmXwPK4wxwm0s0tK8HqO/m981PHq07VeKkBsVRRH8FxsEGOnY4ByxF1qEilDbRGyoKQNJUm9i62MJ87Lu3duc41aXJk+e7DOkfNs0LbdcsN0gBJiwggCJ71NTje/44ic6m+Cl2dGT5jnNzahMU90phPxWSr4sFDH4Y8KKAcjsonUQkIoU5UcOXVtS8liGWxFUVGhvC6G8z3zlFsJ17Sp1T/mMEUgeBCxss1TFuuDoUa2dW72iy0JLiv2JeVXoFiru2WXCcg9bttzqCEihqVYHXVe6uRlKTY34r3TTAdv2I8CE5YeCM8mHgCV0w+yQkWYNdLNvXq/3TRBWBV8WuonyMdtMWMdw4NckRABXhMIyhaKoxk/d7F5amvofkNVRIUBbgv/cRIAJq8XocsNEQEDBjXdVVVz9HbHq6nIfeLE6EfBI9BiZsBJ9BDn+0Ahg0yMtM3Nb3jYXf400wzB1US6EFToWro0YASasiCFkA/GMgIXHd6CRH+w++RPX/i9DTRM+KZX98YxDssTGhJUsI8n9aAQBS+BeVnfLo5/UiEI4xSF1SkuFjz7aICW2cyE1uTJSBJiwIkWQ28c1AiArEJbVXppWZxcD9cHJd1JIF12waUKACYtQYEl2BFTcX2rrViePfXhU28d85RbC39tlwvoeC84lMQKmFGludg839nU37bPtYwgoxxJXX9k4I9CqCNgfbZBuf3FcVrZqJ1PEORNWigx0KneT7oVLgdviLoJgWAqvJRfxdUwzyA4SnCYtAkRYbndOlYarl5xux58o9pmwEmWkEiTO+AxTCok/t2KzLEviXxthueWB7ToIMGE5SHCa1AgYwnStf6+9dp8KSsy0mLFcw9gxzITlIMFp0iKAHZBQsAVyq4P797f3YIvl6v/Q41bsiWaXCSvRRozjjTsEamo0jxBm6hFWK4wEE1YrgM4uWwMB96a616trprA6WXwPy/WBdW8UXQ+dHTAC4SFA/6uNIQSO8PSbq6XrikeRVgfB97CaC12z9Zmwmg0ZN0g0BCzsfCCufRJdq66RqiLThJCC/9xFgAnLXXwbt841MUHAoRBpKlVuOdTTlI54QgjCcssD23UQYMJykOA0OREgxpKyylLUw6510Ei7EE8i2/MloWsI+w0zYfmh4EyyIgDOIrIqdat/umXRb8ZruOx0ywXbrUWACasWCE6SEwEppcCxT9flV2710KOK40PvrtzynHp2mbBSb8xTqsegKyKsb3bt2velGx3flrc8XVHMriBFN8yzzSAEmLCCAOHT5EIAN8OFJZSKvLw8042e7epzqK9hip/gHpYb5tlmEAJMWEGA8GlyIUD3lXTDpHtYrnRMEZm9pdC7kB9XHLDROggkAGHViZdPGIHmImAJoX7SZGBHyQAAEABJREFU3Ebh6JeUWKpmGaepKi+jcPCKhg4jHQ0U2UZcIiClFF6v9+g33xx6zY0AjaOP9RRmxfWGa5+hdyPqxLapJHb4HD0jEBoBKZWjul7xf6G1WlZrprXpITXrVL5/1TL8WtKKCaslqHEbtxCIut2KCt9XPXt2rY66YRg0TWOIFKaGLB8xQoAJK0ZAs5vYI6AoUkjL+9yuXYeiftO9pCTP69XMX1tCxr5jKeyRCSuFBz/Zu25fqpny3by8vKh/pKG8vP3llmX2Efx4MKbTiAkrpnCzs1ghQLsrw1R3GarlygdGvV5lkBBWJvNVy0e0JS2ZsFqCGrdJAASk8Eix9fPP9+2IdrCFhYvOlkIOFlbUN27RDjXp7DFhJd2QcocIAex8jMoa5d9uXA6aZs01qmL2NC3yxBJLBJiwYok2+4oJAlJKoQpt1+H0imdElP9Kli/v7kkzbjRN3l1FGdqwzDFhhQVT/ClxRKER0E3x+oxRs3eH1mp+raXVTFAscQp2cM1vzC0iRoAJK2II2UC8IaAIxdDT1OXRjmtx/twfmmrFOMGXgtGGNmx7TFhhQ8WKiYCAqkhhmNoruz8//H60421jmTfiarOPxduraEMbtj0mrLChYsVEQEA3NP2Ek2qW33XXXYeiGW9h4fP/z5NmTrFa495VNDuS4LaYsBJ8ADn87xGgz17VVGf89cwz33zh+9LIc3PnzkjLSP/v72GpPW+ugEIrHkxYrQg+u44eArhUE5Yl9fQ039xu3dYejZ5lIbp0OWua7jOuNPlzDNGEtUW2mLBaBBs3ijcEpJQiw9tuzSf//Taqu6t165aeq4jq2wTfaY+LIU9+wooLmDkINxGQUgqpenbv9pU9nJeXp0fL1/z584/TfVXzhWX05Bvt0UI1MjtMWJHhx61bGQEpQVZCMdXMtLypo+/YHq1wQHzKcZ2U+yyz5iLT4s8xRAvXSO0wYUWKYAzbmzH0lUiuagxR0qvbefnRjPm0U4+7SVFqJvOlYDRRjdwWE1bkGMbMAg9WXajpqaCU5vvpHTvNvuCCC3xCiKj8FSybO0yRxiOmaWq8uYoKpFEzwmsgalCyoVgioCiKMAyxa+dn+piswWOj9hMyS5Y8eLmmWYstYbbh+1axHNHwfDFhhYcTa8URAkRWlmntOy7z+BvuvfeuD6IVWkHxggFtMzzLFdXozGQVLVSja4cJK7p4sjWXEVAUKTyKun9fjXLDFddlb42Wu4KCBQM0s6ZQVWUPJqtooRp9OwGEFX3jbJERiCYCCp4Iqqr368NHrTE3T7j5uWjZXvrkw1eo0lesqtYPTJOfCEYLVzfsMGG5gSrbjDoCUkqhedN37N5bNmL8DbNeipaD1WsfG5nZIX2lqpo9mKyihap7dpiw3MOWLUcBASmlUDBLvZ6MF17Z+tZ1s2bd83cRhT/6nNXSpQumWz5lmWn6OvFlYBRAjYEJTIUYeGEX8YZAQsQjpRQ4Si2ry28razJHLV6c/2k0Al+0KK9bn9O7LmjfzveEsMwM/uhCNFCNjQ0mrNjgzF6agQBISqiqKiyZtrXap2WNyh77QE5OzuFmmGhUddOm1ed16thhnWJW36Trhso7q0ahissKJqy4HJbUDEpRJC7/aEpqOy3TM6Oy8uiQsWNnRuVJ4OLFiz1z5+ZPqarYvVFYoh8TlUjIP5odCRk4B508CCiYhYpUhCK17Yah3F+hKANGZk+bP3Hi7CPR6OXKlUvOOr6Lubx7twMLdV2caKbYj/BFA8N4sYGpEi+hcBypggBd8inYTamqIlRN001Te90ntJv3f+e7Ojt31r0TR83YHQ0sSkpKMkpWL54urPLnq6oqs3Vdwix/bAEgJOzBhJWwQ5dYgR8jKUVI2kkpSoWiWv+prFaWVlZZl/oM9frc7Blzpk277ato9KqkJM+7cWPBwMqKr543zfJ5Ulon8y8uRAPZ1rehtH4IHEEyImATFF5U2kkpuIFuqUcMU2wBccwtr+ww4aWX9YvGjZt147hxN/9t7NjpB6OFQX7+vF9UV3ZaUn7kwAtejxxg4RGgxR8GjRa8rW6HCauJIUiFalWX9OfBi5BSNCASZceELuVINKkKRVHscrSwU5xbmqYe8Xg8+0yhfakb2jbT8v7OMMQwS2pXt8vsPSw759ZZEyZMWLNsWXTuTwn8bcvL0xYteqzvqpVzn07z6Bu9XnMs+uGxycqCAh9Jg4CSND3hjrQYAVWprDEMuccSyj4hVNw/ChKpfAFG+lxK5VPUbxem+HuFp/oVU5EvCEN9DuS01jQ98w1Du7O8Mm2wVaWfbxjen1X7Kq8dlT39j6Nzb34mO3v636699tqo3ER3OlpYWNi2uGDuwD0/7JLfuaOyRVj6BCGsLga2co4Op8mFgJJc3eHetAQBXXvvm+qKtHG64R1uWGlZwSJ8aUN0RR1SVaNdX+1Lv6a8+odXjMuafdnokTdfNWrMrGtycmZmZefOmAH58/jxU17LGnvrN2PGTPk2Wk/5gvu0atXTPZcXPTnDK0tXKR5zi6LWZOPJX4djOyreUgXjlUznTFjJNJot7MvMmTOrc8bP/Edu7tTXc3KmvBEso8ZOeS935Mx/jxs3/cOxYyd/OXFidHdK4YRdUPDESQUFcwYUFc0tlObh19JFxVyhmtdYpiFN0xJEVuHYCanDlXGPABNW3A9R6ga4adP9p8x57A9ZK4vmPeBR5dZ0r7VFVfRc0FMfXPoJkz9PlXKTgwkr5YY8Pju8ePHiNgUF848rLn78p4WFc+8tLn5i9aHSjpt69Oy4RlX1u6U0+hiGodETP9pN8YVffI6j21ExYbmNMNtvEIFlyxacuLJg/oXFuGleXDx/Stu21eu8mv62KuVfPKp+nyqtER6P72xd9wm6iU4k1aAhLkwpBKJHWCkFG3e2MQRALLKkpETdti1Pw67JU1Cw6ISCgsUDVhXNnVBcPPeeNavm/mn1yjlPpXn1DZaqv6J5zVc8im+hpuhXCmGeYlmm/VMvdLln4t5UY364PDURYMJKzXGv0+txy/PSi39b0nfr7SUXhpK8O5/5+YLFBbjxvejqwsIF1xQVLMwpKpo3Y8WKeXkrVsx9tKjoieU4f1av3rt17+7Of+vYvvKNdE/VX7xaxVpLGEukpd8vLOM3Upo3qIpxviKNtrjME7ph4n4U7kxZx6ROcHzCCAQgwIQVAEaqZvseuv7kNj//bPP+i7987dtf7GpUzrnw879263jgZY9atSHdU7Ne81YX4PJtLuT3kFtVaY7TFN81UvH1F0K/0LKsn4GCTsPO6TiQlCqEJQzcKKdLPNo9gZ9SFXLudwsRYMJqIXDJ1MzQfdKsUr2iXEKURqWyXPH6fMJjGKaGXZFmGqZyjHzMgB0SaAl3xEFWKHPKj5UlE2bcl9ZBgAmrdXCPK6949gaKEUZcBcXBMAINIMCE1QAoXMQIMALxiQATVnyOC0fFCMQLAnEVBxNWXA0HB8MIMAKhEGDCCoUO1zECjEBcIcCEFVfDEToYM3Q11zICSY8AE5a7QxxV6zxYUYWTjSUgArwGEnDQOGRGIFURYMJK1ZHnfjMCCYgAE1YCDhqHHJ8IcFTuI8CE5T7G7IERYASihAATVpSAZDOMACPgPgJMWO5jzB4YAUYgSgjEDWFFqT9shhFgBJIYASasJB5c7hojkGwIMGEl24hyfxiBJEaACSuJBzduu8aBMQItRIAJq4XAcTNGgBGIPQJMWLHHnD0yAoxACxFgwmohcNyMEWAEwkEgujpMWNHFk60xAoyAiwgwYbkILptmBBiB6CLAhBVdPNkaI8AIuIgAE5aL4EZumi0wAoxAIAJMWIFocJ4RYATiGgEmrLgeHg6OEWAEAhFgwgpEg/OMQOshwJ7DQIAJKwyQWIURYATiAwEmrPgYB46CEWAEwkCACSsMkFiFEWAE4gOBZCGs+ECTo2AEGAFXEWDCchXe6Bo3o2uOrTECCYcAE1YCDRkPVgINFofqCgK8BlyBlY26iQDbTl0EmLBSd+y554xAwiHAhJVwQ8YBMwKpiwATVuqOPfecEYh/BIIiZMIKAoRPGQFGIH4RYMKK37HhyBgBRiAIASasIED4lBFgBOIXASas+B2byCNjC4xAkiHAhJUoAyqFME3BH3ZPlPHiOF1BgAnLFVijbxR8BaNWOV6ifpSV/ddSFE/U7bJBRiDaCDBhRRtRN+0pssYN86ecsrdK1zXdcsM424wRAqnhhgkrQcZZSlwRmmqZG+G2a2f5YNcSzFiAgY94RoAJK55Hp05shqGqnffUKYrWSYVtiOnKhoFf4hkBJqx4Hp2A2BSpGRUVld8GFEUtWwHCMg3JN/SjhigbcgsBJiwb2UR4UcwDB3ZVuRGpmilNw7SYsNwAl21GFQEmrKjC6Z4x3SYUryukkp6OG+6WeUTKY88i3esFW2YEIkOACSsy/GLSmnjEspRDUrrzlLCiwvRZQh5guorJcLKTCBBgwooAvFg1BVEJ3dD/e/HFFx9yw+cJJ/y4QpHqZyI1GMsNCNlmjBBgwooR0JG4URQpvN60t/r16+fKxxoGDBigHymvfEvT1EjC5LaMgOsIKK57YAcRI2BZUliW/jkMWRBXjjTN3EN+XDHORhmBKCHAhBUlIN0yI3GZphuiyjD03W75ILvejIxDNT6jgvzROQsjEI8INJew4rEPSR2TlIpQZM32fft+9LqbHa2q6r5DUZR3pQRDuumIbTMCESDAhBUBeLFoalmWUFTvO7feesV3bvqbMCFrv2Ga7wvBhCX4L24RYMKK26ERgjY7muY59O3+6uUiBn/pHusV8GM5+Y2BO3bBCDQbASasZkMWuwZSSiG1tHUzZsx+NxZeh2ad+6JueN9xfHHKCMQbAkxY8TYitfHQRxkMU/m0ssL3IIpcezoI2/5DygG6bqgPKopaBa70l3OGEYgXBJiw4mUkauOQErsqiJCenWnpnUfn5k77rLYqJknbtq++UlGVca8EaRFpxsQpO2EEwkSACStMoNxWI3JQFBoOeVjzelYp6tGrhg0bE/PLs6ystca4cZP+XOPzjjFN8b6UilBVRRCHCv5LXgQSpGdKgsSZkGFKeWy3JGVDqRAKyjWPKhQQlSXUT6Wizav2eYcPHz5jdFbW3THdWQUCLKW0xoyZulbztr/Ukt5pquYtMQylzOPRbPJSFCmkEAJ6jQjV1RXBf4xAFBBQomCDTTSAABazD3IUckhRRKmQ4qCiyD2KVL4WQvlSN7XthqltrC4XMwyr/SXflWqDRoycMXPcuGlbGjDXKkVZWTd8N3r0tIVbXvl3TvuOnksPllqX6T71d7qhvWQIz4emUL+k/ihS7pbCOqCqolRRZZmUypFAEUICB2EI/mMEIkSACStCABtqrihSmKayVVR6h1b72lx9tMJzmVTa96+o8p5nCP3cGl07Ly0t/Zc1euao3Ak3z8/Onrht2rTY3qtqKO7GypYsWeIbPO6vLDcAABAASURBVHj6v2666eZXssfM/GN5RdpQn8+4WNdVuz+Hy+V5iuf4X1VUpf+6qtozyFedMdSR8krvtYaeMUZIbSfIuzEXXM4IhIUAE1ZYMDWhFFwthbB068uRE6dtGTt28v9OnDjjnZEjb/jP+PHT9o4effuBsWOnH8zKmnxo/PjxrvwgX3A40T6fPHlyxfjxt5RRP6g/N954876srJwd48ZNfRdlb+aOv+kVRyZOnLbtjLN+9rLP5yuVwCXasbC91EKACcul8bak1Lbl5WkumU8os15vZZqFLWdCBc3BxiUCTFhxOSzJFdQhV37FK7kw4t6EhwATVng4sRYjUIsAJ62JQEoRVtu2NtQxuUzD7Rp1Z48eSGyfKf8CINSUB8EFACRuPdQYNSmzjlOmozRX9u49YkpVOayqWpWqqpWuiaJWWYqo7NSpk0l+U10yMjJMKZVKBbi4hrmb4xnHtnXDOHLKKb2qU2WOpRRhPfroo6WmaQ0ya8TPDMt0Tap9Rl8hrfuzsrL4s0dYSeeff/4Rn+kbb9bUuIa5m+MZr7bNGl9fvdL381NP7bENMKfEEWPCanVMjezsWZ+OHDPrP6NH3/qhW5KTc+sHubm37Gn13sZJALhsMSdMuPvzkWPucBV3t8YzXu0SnmNunP3R2WcPOBonQ+16GKlGWK4Dyg4YAUbAPQSYsNzDli0zAoxAlBFgwooyoGzOjwBnGIGoI8CEFXVI2SAjwAi4hQATllvIsl1GgBGIOgJMWFGHlA0yAqmHQKx6zIQVK6TZDyPACESMQKoSlgRy4QpUm3U0Zrc5Rhqy0Zz2ft2BAwd2GDp06LlZWVmXjxw5cjDkKshFEyZM6Dl8+PCofl0mLy9Puf7667vB7oWjR48eBD+D4XfgqFGjzujfv3+6P6hmZsgumjSESagyNGn2EcpeqLrmOgplqyV1zfWfsPopRVg9e/Zsk5ub+wAW0sYRI0asDUew2Iqw+OZgEU7Bwr+gqYUH+7+F3ecgjv1n4e+3V155ZVo4swT+fgIpQZtnyAalkBIs/F+E0550Bg0a1B1tRiDu1V27dn0jPT19s6ZpK1VVLVQUpQjp+urq6teQfwX9ugPyI2rXUoGfPoh1+s6dO19s06bN37xe73opJfkphN/V8PPS8ccf/7+I6bEhQ4b8YtKkSZ5wfaHNVR9//HEgng6ujaZoswYYLkNcf7ruuuuGIu3TlD9gdhr0itCP9ZBGbQfWwc86+FmJdouQ3jVs2LBLgWXnUL6gczXabYKsC7TVkjxsbMa8+AN8RvWNJ1T8rV2XUoQFMvHU1NRciQU7GDK0McEi89dh4WVjkGampaUtxML/a/fu3Quzs7MbJQ/DMPp5PJ5Bjm3YusayrEuQNjqpYN9/oH0PnAzDIr++1sb1iIHOT0Z5yANkqmESj+vQocNmtF0N5RFoexb8n4B8Z9M0OyDtiPPjke8DnQEgl4cR79acnJw/9OvXryvqwz769u17HBbr79BgC/o3D+llsH06pDukE4T8HYf0ZNSfjz7dAkLbUl5evgxE8lPoN3kg/tMRH42ZPSawY6eI3Z8Gl8HPcLQbD+O/yczMXIv0VSzsB6+99toTkW/wAB7d4GcobF0XaLuhPHRs3/AzBH5GwuBNyP9PRkbGS8hvACkPRtrgAR+nw+bV0B+C1LbT0hRxXAV7l+7fv592ZQ36S7bClCIsTCgLE6waC0gES+DAUh2dU+oIJjS1aYPJNRxla0Fao0mnAamp1SV9W8gnyM5qQLdeEeybsG9/aRqp3R5KFspDfi8R77JdQaZLsRCehr8LAmNAe/8RYNO2TXqo7IHy32EXtBqXdKfhvMkDO4JzTjzxxHXw9wco96q1Y9vEuZ3CJmVtcfLQa4N8DvDYMHXq1BF2ZYgX6OoQ2x6pob0/T+dUF1hG5yROna7rEucnYnHPxvivxrg1uJsEvjBjVkHXb7+hPJVB0dahvCNUhjcbDQTyS5By8ZgxY6ZSDMGCsdGdMmpLeUqDxSl3Uqp38k5KZbCXMl98pn6nFGFRhx3BQAsSOqeUxMljEdp1VEZ5KqfJQSlNTKS0C1qAXcJlyNc5qA2JUxiYd8qaSqmN468pXaoHWXVHnAWQsThXqC3ZCBTUoUrY/0MPFqe/f1RI+iTYRV4CIskPtRMhfZDaOSCAldDtj0VKRX4hPyTkmwoD8+SDpLa8V2lp6dJrrrlmHJ2HEqcNpWQ3UBz7lJINqnPydO4ItUW/L0L6OPBq9LIN9U4TOyVbjs3gvHNOiqRDbUkwR9pBHsRtgCupLlCC8SJ9aku2SJw8pSTU1imn88A8naM+48iRIxJpShwpS1jO6NKgY3J95vP55mLyLEZ+Md6Vn0ZahMn1DNL3oGNC7HdVagc9ynfEu+kfb7nllkYnP+m6Lbgf1AZxPAECqbc4yDdi3Yd+LEP/bkYfbqiqqpoCyUP531BfZ9eHMiKyC7ETofsiXtTXO3DJ2QvEthy6P4KQPmFhp1C2gNfrwO9e5CdDbqysrLwT/tcjXw7/th61I8F5O1y+Po57g5ejvtGDFmlQZQVsroXMh7/FSBfD3pOQZdBbifNXkd8f2A6+7DhRdtnRo0evhl6DB+mR1FYasP8X2LP9oF/kh/wtgf0VqNuI9CPo0q7Y7hvyth/UZeL+4R39+/dvR2WOqOr3dwYcP7BxBD5KIAsg9hxEe/Jji5Mn/46QHmQZzte9++67IXffju9kSFOWsDBJ7IlFkwaD/nZJSckspNNI2rdvPwWL8kZMlHHV1dVXIc3FYH9FuiTI220x+S/A/ZjhdN6YkB+8szdW3WQ5tQ+lhF3KjYhpBGK0YyJ9nDuLZwVi/PXevXsnr1mzZs7KlSuffuaZZ55ct27dfbA5FPfzJiLdB/G3rW0/OiMj4zIqDxTsTFSPx3MP+nMulZMuCfmD/6+BHd03GrJ69er74WvJqlWrlsLfI8Ao1+fzXYUF9hq1I30Saot2HXEf7SEQYU+qa0hIL6i8DKT7APzMgM9psDEN9qfjftVNSG+AnyyU94csQv91xxfZIenYseNlM2bMCPkQhPTQTx22lwX6gc1pwHMaYp4E22OhdznKJiK/l/w4caJcIJYLevXqdbFTFphSPQm1gexH/n74mQ5/9hyETbtfzjmlwbJnz57JZ5xxxmOwa99CQJr0R0oSFiaHPbCYKPZCxe7E3mmsXbvWIKH/1io/P78K+aPr16/fg4m0Em2moVE5UiTHDrSTBw4cGEQL+VhJ/VfygQVUvyJECbUhCaFiV+GGd2/EcIsTE7UhoUpM7keJzIqLiz947bXX/PdNqI4EZHIAxEU7pUloUwqhYluQ94JkJgcvapD3JVAY3YC/L0F+I0H6BWQXOnWOzZs3VwDLv0KH7lk9S5WODcpjsZ+DeKdQPhwBaVrbt2+3dxWwa48ZpTRuSCsh30F2wObNkC2OL/RL4JzkDJDOsd+fbcAh6ZMuVSFvkwHs+f0QnjQ/gO1hzI2vUJcPcvot9O2YnLboV+bhw4fPQHm9w9GhCvgQIEC7LWz5/TSVpzjy8vLs+MhOKkhKEpYzWWii1OabvAdw+umnP4/J/kKtvj03qD12Iqfg5CSIfVAZCZ2QrpOn85YI2WisHXYAY7EoTnZ8OCnK1+Md+ncvvvhikzdkseA2oV/F5IfE8QUi/CVIK3CxKW3btp0E8s0gHfJFgjZViOEOEPsbVB5KNmzY8C18zUC7j9DO2QU6bxrZIH4/joF2oG+fUhvKUIr4mpy7WPA1aLsN+vSwxfaDPN3H0zBuIccc7cgVxdikH1IEiW5B3z4g+9SWUoyDwDh0pHpHgJ+dJR078/3L99eK35dxLgiBsAYjqE3rnbrgmSYOTa6mTNM7Gd5Ft9EkJF2nDdofh8XTncqiJbBpm3J82CdBL7m5ud2wGH4dVEy7h324nL0Pi7UyuK6xc1xe5cPXXtRXQI5AjoKEJMr/H/L2gQcM50LnIvuk9gXnAgvwua+//pruUdWWhk5AkF9B4xGIfVBfSXByMnYZ1yKtd5AfKqzVs4mHzsMRjJl96ee0pTYglr24t1aPzNFnqiaSstPmvADzQ2j/TWCs8CPatWtn75yCbTl6weV8HhqBlCQsZ/I2d9JgQtb5D6tq22tYtP4PQlKZIw70dO7kw00pRkcaavPtt9+ehXjOJR2qJx84p8VcvHTp0u1UFq6UlZX9G4srF7ZGQkYhPxJ9ygY5v+7YwH09Iq+eqCcfzqKmm81FdGni6IWTwu5LsEM3q/3qiF9B+YUoaHCngXpUHTsoD7GOnTX+ih0dfebsCmhA/fsNFXZD20Do5Sivc6Df9jlic/pnn4fzAgzboV03iF+d7OG8wV+eRXmgD5xaPn9DzjSKQEoSFmavDQhmSeCksctCvWAndTJNQkeH2kMqUV5v8qPcv7Ap77QJN6UYHWmoDRbd6fBb5+su8FOBRf9qQ/qhyohwcJN8K+4/bcYO6HmSkpKSzStWrLBJBbtLBbu5H1E8jh3Kw9/H8PeBUxZueuqpp+5D+1cgdhMnhY8zBg0a9AO7MOAFfmwsnSLoWbjBXm+H5NTj0jLj2muv/VFhYeEiXPpd7LQnQofODtyLewZpg4RHuhQPpdAJ+4Bturl+jtOAbCD/JWL9O9IGjwAf9D85daNdc05OTo+mhB5QoI9d8QSS2jVoO1kLU5KwAgeTJg1JYFlD+UmTJnXBJBzmEJbTBqSxD39fNNQm0jLHR7AdIhDseM7ALqjOQsai+QzxNZtAgu0Hn+/cuZM+sd7HiQc42Co4//D999//2j5pxgviN7GQbTKkZrBj9wNpr/T0dPqMmxCCao6J4+/YmaDL0A69e/eegUV7V1ZW1u8cwUOI+yGPYEyWgai2QkYCD/tNCdiQj09wPg27q88cW8FpsC/oN0qMtW3lqFGjrsPl7J9w7kUfAv2thK8dKK93kB8S0kdld4zlAmCysTFBvb8O+vRNhgXdu3evhxXqkvpIScKiiULijCzyobbjEu9ovQ4dOvQE9M+D+A9aBLgx/cGrr7560CmkCUgCm3YR5e1MC1+ovWPLMfHFF1/QwvgBFpNTRDeSBXY79Jmr3f7CKGXgvy3iON4xh7ydhb+9O3bsqLFPmvmCtvsRv//pZa3NTiCZ9qFM1eplgiCmgdz+B/eO/oD0Dzj/A8bjHsR6O2Qk8vTpfZs84Oc73Mt6GIv+KuweX2vKfq0Puh+ogvyuufrqq28aNmzYDEdAlNNHjBgxC/Piwezs7M3wVwib9vcVkbd9Hj16dG2/fv0eRnm9g3TIB0ltZRrKfgy5EHH3JQE+dkr5YEHdeSg7H/1pU9s+ZZKUJKyAiULvuiQnYQJejXfnax2hd028c4/FpHwCs+EvmCTZge0wuehzNke7d+9ejPo6B9UFFgSfB9aFkw/0S/ogSQ1lmZR3bOOcnkjRxwcavMlLui0VLA4P7NsfAyB/JDinBV3VUpvAky6jK8mWYwNl1Id6H1j0dFuvAAAQAElEQVQlX6RDuo5gsZKuCEwpD3Ki8SR1mzgogzbfoHwX0rDIFXrUjOxoyOd26NBhAQjxCUdwOT4HsT4OXGYjtqugnAk9JIIw+Rj5ez/66KOJU6dOLbULg17Qxl8CXX+eMk4d4iX/tlB54DnpQGrgv8HLWtJPVklJwqLBxID7JzQGvj8m4WakG0kwiTZiQm7Au3c+zmfi/JRAfac9tu/53bp1+yudBwrphjoPrGtpHjHZY+f4ohR9aKm5kO1ABHAn6Tt5dfSwiFq8YGrbIuxjJuCgju2mTkgfY2OPYWDeKQtsj/ofYywXIH0Rb0ghP+gLHT9J1OYlYiWs6StPdgrblK+DBzD6DHIP6i4rKiq6/5NPPqGnrTht+CDbVAMA/H2gMid+Sh1xyumc8rXiQVzfP0kgY4krYUdOAxC2crIq0qTB4Nvv1pSSYPLZ51Tn9JvytZOFLr/oazt5+Kv3wT3ScXSpLZ1T2gyxJyK1I2mgnQH79BEEf1WtHt2Ej/qYAg+6ZK6o9WEvaFwqiSNHjtgfGfAH0YwMbLaBPYrXboX+2HjjjYJ82WXOC/TsRe2cQ5f+H7582HgQl3p/dgRvIJRfgPIi6LyFdjZGyNPOh2ycBRv52DWPRhryQFu7n5QSUQQLlZOQbRLUH4fYByO9Hbtz8hPSPrUhhVobZYh9EebcvZD7Qgn6dh/6+wDaz0GbA2QjlSTqkztRwKudKDSJbcEEsFOKn+pIKE9CeRJMRjrdj0uyB/Gk6wY8Nvffu6IKEtIjW5QPTqksDKHH+jZhObqwY2IS+y/19u/fT4u63ldBampqug0ePDiqnwmjGPBUjRb+/sC+YeGIDh06dAFht3QOdYFtL9lE6mB/pKqqisiIiuoIMPATCMjyEB4EPIqnmnfjaeYdQTId96lyy8rKfokFPQ5G/uv4IBs4p1/c+NOVV175Q+TrHaRD+rUpumn+A3n6fiJ9168ENindiIo3UP4d6dYa6YS0L85pR06/d1XnM2uoC3UcbNu27RzETV/PyUMaUtDf36Lv8xqaf6GcJENdSydbwvcdk81eJJSCiKrx7kgL8gDSA5h0lB7EwqAv0O6FDj0FfBWEcA+I46pnn332bizUsoZAgO6xaxxUwg5eBflJw43hsLBGe9Vph7ygP5zT9+H8N6jpYwiI7ROqCxTon9quXbsGfz4lUK+5+dLS0kNo8zmE+kKJs2M589NPP230O4C2YsMvRMinAXebhEgFfaTkK+Bvf7eRThxBv5ysrU/tDh48GBJP+pT/mjVr1qLtFNg+Agm00SszM7PBXRbpoY3dT/jxIT9/5cqV2SCIkSASW0BaI3D5PQSkRd+PXAjD9psJdO34YKM32j58+umn2/cZUV/nQL3/nPIQiXmVch9R8IPQjEzIQW+GnYRTxSRxJhctvlcw+X4OQroY7/AXU4p36Iuxk7kQ+QswQft27NjxOjyi/hMWwduhOgs7tPuxJ7wzgZG2w1PGsLDG7g1cpNmxhfIDmx/BF12O2mo4p8vUTKT97ILmvSh42vVzPGQYhHs8l+OS5go8hLgST8NOJzNEkNhlfUh52Lf7RnnIj4HPmUibdVx//fVdsaAHIn5/O7KLRfsJHmJ85S+szdBY1Wb9CQiDSM9/3lgGpPFX2H6T6gPtgBh/RmXBAl27f5RSHeJ0MKY3IlswD2pWrFjxLebCP84888wZ6MdSxza1I8H5efhr1AfZJiFdSmEjrP6QbipLWIsoGQGiiYJJZXcN+TK8i36OifiJI5s3b/4Y79L/xfk3kP0LFy5s8FLFNhDwAlv2kzOk9sQnH5DOWIzhvoM29FifbNJTNb8n2KfP93yIBeUvw6QnnznXXXddL39hGJkhQ4bQLmktFvHzsPsS4n0R+RcgQ53mbdq0eQt136LOLkKeUg906CZ2sxYbbAxA43NqbSB77ICtt+fNm9fU556OKYf/qgN7+3NX5I+EmgK3DiBk+3uRdE6CMsLPfrNAjFREb2Yh1wh22ibifhTY29hQu1of6UjrfAyGDEKXEr+Qvv+EM00iEHIwmmydoAqYSHUixzndN6pT1tITTEj/jVDYtc2grDOeUtGXpO3zUC8ghnOwowtWOYIFUecSFAS7C1sx+t0ne5EFTPzeePx+OwyETSKILQuxnhBggz7XVY3yd2DHPrDD+icWPt3IrrOgsdMZAYKkX3Gw9Zp6oZ9VxuXYndDzx0d+IXuxW9uE8noHYqtXFm4Bdoc0x/0/jQw/jTYFxv6+Nccn8P4K+jY2ZJx84JyeItb7YCcwJBW/QM/26S/gTEgEaDBDKiRzJU0W6h9NMEqjIbC1E3bsH/xDHllB79Id09PTx9gnIV6GDh1Kv7M+hFSctpQH4X2HS8V6HwjFQinEIttPOtQXEsqDyG4YM2YM/RwOnYYUXPqdA18zoEQLzCY/soOF9RnSd1FuH9hlGohhGXYhPujbZainJ3vtQbKP9+/fP/CXHez64BfsaNqddNJJj+Ip13nUluodW8hvfOaZZ+zLTuTrHAE6/nKQunOp5i9rKHPiiSf+HDH3c/w5OuhfGfpU7wvi5CtY12nTWJqfn0+7Qvv7m0Ft6UZ8Y83qlGMcw+pPnUYpeJLShOXGeGOX8AYIxr58pMlbK7SbmIjH6TNp0TbkF8RxJgiIbuDW24lhcX7y3HPP1SOsp59++j0s/iW0yIJspmFBPjxs2LA/XXrppf5PqAfqTJo0yZObm/srlNGntHtRnI4dxC9wo31JYWFhnaegGRkZdMm4gfRIH22d3cGPTz755LWDBg26AsTl/6gC1deKHDhwIPVvOXZt9KN3NjHW1lH+y7179z7unAenji/yS3XAWJxxRuP8iBg0PC3NvPzyy+k+2ZNo4/+JF8cWCMK/e0R9vcPxVa+i4QILO9AvQIzBteESloW2dH8suD2fByGQkoQVOBkD80HYtOj06NGjH4FEXnbsOikWSjsQweO4hNqIm9pTIXRj+zLc6L4OZPVn1L2ESTuQnEKXElrI9qUZzolUGpzQIIBHQU6vBvixSQRtMlD3m+7du78Kovw9/F0D+TUI8wrs5MYePnw4H+02we9PbGcBL1jMW/DwgXwGlAqBHUkN+paHdjvJHwkpwJcAiZzduXPndT179lwFHxMhdv9wE384ZC7Kt8LuMNKlNo6gz9Wwd8+rr75KO1OnuE4a6Ke2on2HDh1moD/3om/3B8kD6PMCPC19oVu3bs/CX53PRNXa2o9+h/xJHLSrdRVegl1tqaNJbdEv2lnX++oM/DpqgelxILxZmAu/D+pLcN+Czx/Am87d559/foO/IxboIFnyKUlYNHi1E9dZ3FQUFcGN+mqQwcOwvxtSxyYmMuF9KSat/alrpC+DwDZAboPiSahHcuygPE16EEQ+nkS9cKy0/ivuZZXicnM69LeTP0dIEwRB/TsLfvJgaxPqtsDXi9gp0Sf46bF+e7QjHVK3BeefgEBuw72fMrsg6AVPxj7C4pqE4q9hzyZV5O0D/ujrO9eBKJeSH/gl4i6B3nTsEnsitX1RSg2wyI0jR47QZ49W0Hljgpj8fmrzmejPjZD74IN+stkW2KP0bpRRfBfDZz3CIB+IcyGeHvq/fE1lgeLEF1jWVB674yrgZqtRe4oTOLS58MIL69zYJx2qd4T00Ij+f4DJwIzG6R70i/rRoATWob/U19mw0eR/AQcfSXHQAkqKjoTTiUAdDHLgaVTzL7zwwjuYWLNgdJ8zMSklnyQ0aSlFPb0L030geyFTGQnpkkBvU0VFxT30JIp0G5P8/PyPscMZgbavUzvSQ96/yLFAbT9URnV0TqlzTm1I4O89LLJckNJ/qL4x2bBhw1+xA6PvVr6PftIu0FYleySB9ilPQuUktiJe4K8U98Ruf/bZZx/AacgDujY+pER5SsmWI2Q/UJxy0nPEiRMkVox+/rkxTBtq69gIlcIu/bqpreLYgJ/2uHSlD8ja5c6LU++cU5+c+J0y55xS0qeUhPIklCdBvhp9S5n7XylFWJWVlXRj2f91EpootRPE/wN8tecRJ7j/sw7v9KMxqV4jY+QrWKg8UKgebWhxfoeJ+AjOx23evNn/1DFQNziPG9Yfg0To528eRduDmMS2CvJ2Clt+AgssIz2c0/felmLnNQTkF/JzZrYxvKxfv/5v8HcdCHUh+vgd2SEfqPIfzrmTOjrwR5eHI2CDvlje4KWuYwRtQ34cBPX+fjltYN8uc+rIL2I8AHkEMU/Bpa19j9HRpxTkAjWlztyAHToP6wkyxo3u9wV+8p1i6I3dqP1ZNvJBAif0hWrK2kIxUobSYHHKKXXE0XHOkXrRLwVpShwp01EaTVyu6Zgw/8IA/wuT8Z9ISf6NyfYx1UdbVqxY8ZePPvroetilX/FchXQX/B/CpKNfKaAPmFI8NfBfjvKDiOk97JRox3H1qlWr7qTLPbQJ+8DO51u0ux226H8W/h/0bzvyRCb0PUD6pQL6xLwP/uiH/r7DIv0QOvS/rlwDX5NAVvSJ/rD9gXB2QaYh7mtgi/z9G5cptGjp6Rs9TdThqxr9PQz5Er6KIcO7dOkyFHG+Eo4j2NsN2x/Axz9J0P6fgYI6+9ypC0jpvzF7EfVPQ2bB/1XweeemTZuInOu5Bk6HoEe23q218Q78vIn4633yvl5jFBw4cIDm0Aq03Q4hO2/B5ue4PVDnoQdsfoPL/Peh8xbypFdHKAYSqoOOv47yJFRO9bV5msv/gHv6JgKS5D9SirC2b99egQUwc8CAAZd07dr1MmzXSfp//vnnRBKujPb7779PH0pdvXPnzrHY4fXFhLsUlw85mHR0n4X+e6qJIKmhbdq0uQjlA2q/J2Z/MrulARUXF/8DZPkb3Nv6FRbNxbAzAn7pP5Cge12T4G8kFlK/U045pR8W8W0Q+sWJkDsd2Gj0WL169d8hvwGe/cku+kEEfRNS6t84xED/F2Bf+BkHvXXz5s073KixoIp33313/fHHH/9L2KaxalJoXH/xi19cpuv6VbgPNwz+JkPmgpDfCjJd5xSX8TsOHjw4uFevXpeSLzz1HFhWVnbFJ5988pc6io2cbNmypRz6s3Fv7FfUHvLrzMzM/nv27NkQ2OSDDz5Y36FDh/5UD2myP6F0EOMlZ599dta//vWvBj8OEug3WfIpRVgYNAsLuXzy5MmHaNHk5eUdhpS9+eabtCNAtXsHFp6PdkBYOO/iHtF6LKJ85JeAoIogLz/11FM7cakS1XdK7JjK0N+PQGDPgSwK4HcxfObD32bcO9rx4IMP+p9sRaPnhCXZhZ9n0b9lSJdAViOGf2JnQzsV//chw/W3Y8eOmieeeKIMtg+HIzSuM2fOPAwsj+7evZu+tG1/zy8MfwZ24IcfeuihQ+SHUjqncQujra0C/Wq09ce6aNGiUrSnGOx6eqH+LFmyxPYB3bD61JgexTh79mzaMYbbRwohoSXVCCuhB4uDZwRSHQEmrFSfAdx/RiCBEGiYnNw0lAAAAbBJREFUsBKoAxwqI8AIpA4CTFipM9bcU0Yg4RFgwkr4IeQOMAKpgwATVuqMdSM95WJGIHEQYMJKnLHiSBmBlEeACSvlpwADwAgkDgJMWIkzVhwpIxApAgnfngkr4YeQO8AIpA4CTFipM9bcU0Yg4RFgwkr4IeQOMAKpgwATVvhjzZqMACPQyggwYbXyALB7RoARCB8BJqzwsWJNRoARaGUEmLBaeQDYfXwiwFHFJwJMWPE5LhwVI8AINIAAE1YDoHARI8AIxCcCTFjxOS4cFSPACDSAgCuE1YAfLmIEGAFGIGIEmLAihpANMAKMQKwQYMKKFdLshxFgBCJGgAkrYghT3AB3nxGIIQJMWDEEm10xAoxAZAgwYUWGH7dmBBiBGCLAhBVDsNkVI5DYCLR+9ExYrT8GHAEjwAiEiQATVphAsRojwAi0PgJMWK0/BhwBI8AIhIkAE1aYQEWuxhYYAUYgUgSYsCJFkNszAoxAzBBgwooZ1OyIEWAEIkWACStSBLk9I1AfAS5xCQEmLJeAZbOMACMQfQSYsKKPKVtkBBgBlxBgwnIJWDbLCDAC0Ufg/wMAAP//7gYMjAAAAAZJREFUAwDrcfF1z+f6fwAAAABJRU5ErkJggg==";
+const FALLBACK_DATA=[{"key": "2022-06", "label": "Jun 22", "mes": "Jun", "mesNum": 6, "ano": 2022, "total": 15999.0, "ceramico": 15999.0, "prensa": 0, "sharePrensa": 0.0, "f1": 5321.0, "f2": 7128.0, "f3": 0.0, "f4": 3550.0, "agua1": 3186.7, "agua2": 4143.5, "agua3": 0.0, "agua4": 2094.8, "aguaTotal": 9425.0, "tph1": 52.9, "tph2": 57.2, "tph3": 0, "tph4": 27.6, "util1": 32.0, "util2": 37.1, "util3": 0.0, "util4": 38.2, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2022-07", "label": "Jul 22", "mes": "Jul", "mesNum": 7, "ano": 2022, "total": 0.0, "ceramico": 0.0, "prensa": 0, "sharePrensa": 0, "f1": 0.0, "f2": 0.0, "f3": 0.0, "f4": 0.0, "agua1": 0.0, "agua2": 0.0, "agua3": 0.0, "agua4": 0.0, "aguaTotal": 0.0, "tph1": 0, "tph2": 0, "tph3": 0, "tph4": 0, "util1": 0.0, "util2": 0.0, "util3": 0.0, "util4": 0.0, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2022-09", "label": "Sep 22", "mes": "Sep", "mesNum": 9, "ano": 2022, "total": 22589.0, "ceramico": 22589.0, "prensa": 0, "sharePrensa": 0.0, "f1": 4921.6, "f2": 6020.0, "f3": 6866.3, "f4": 4234.1, "agua1": 4102.2, "agua2": 4413.2, "agua3": 5043.9, "agua4": 3402.2, "aguaTotal": 16961.6, "tph1": 45.8, "tph2": 51.5, "tph3": 56.6, "tph4": 41.4, "util1": 23.0, "util2": 21.9, "util3": 23.7, "util4": 22.3, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2022-10", "label": "Oct 22", "mes": "Oct", "mesNum": 10, "ano": 2022, "total": 16848.0, "ceramico": 16848.0, "prensa": 0, "sharePrensa": 0.0, "f1": 6297.6, "f2": 0.0, "f3": 5331.4, "f4": 5219.0, "agua1": 4292.4, "agua2": 0.0, "agua3": 3511.2, "agua4": 3591.5, "aguaTotal": 11395.0, "tph1": 53.8, "tph2": 0, "tph3": 45.3, "tph4": 43.1, "util1": 19.5, "util2": 0.0, "util3": 19.6, "util4": 20.2, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2022-11", "label": "Nov 22", "mes": "Nov", "mesNum": 11, "ano": 2022, "total": 27062.9, "ceramico": 27062.9, "prensa": 0, "sharePrensa": 0.0, "f1": 11329.5, "f2": 0.0, "f3": 8158.3, "f4": 7569.2, "agua1": 8084.1, "agua2": 0.0, "agua3": 6063.9, "agua4": 5404.2, "aguaTotal": 19552.2, "tph1": 51.1, "tph2": 0, "tph3": 39.9, "tph4": 37.3, "util1": 35.5, "util2": 0.0, "util3": 33.0, "util4": 34.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2022-12", "label": "Dic 22", "mes": "Dic", "mesNum": 12, "ano": 2022, "total": 13601.0, "ceramico": 13601.0, "prensa": 0, "sharePrensa": 0.0, "f1": 8315.4, "f2": 0.0, "f3": 4131.3, "f4": 1154.3, "agua1": 4928.5, "agua2": 0.0, "agua3": 2428.3, "agua4": 698.4, "aguaTotal": 8055.2, "tph1": 52.6, "tph2": 0, "tph3": 29.7, "tph4": 19.0, "util1": 54.9, "util2": 0.0, "util3": 48.3, "util4": 21.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-01", "label": "Ene 23", "mes": "Ene", "mesNum": 1, "ano": 2023, "total": 33716.5, "ceramico": 33716.5, "prensa": 0, "sharePrensa": 0.0, "f1": 13964.6, "f2": 7916.7, "f3": 3067.3, "f4": 8751.8, "agua1": 8946.8, "agua2": 4097.8, "agua3": 2055.9, "agua4": 5422.6, "aguaTotal": 20523.1, "tph1": 42.7, "tph2": 73.6, "tph3": 17.1, "tph4": 30.2, "util1": 45.2, "util2": 15.5, "util3": 24.1, "util4": 39.5, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-02", "label": "Feb 23", "mes": "Feb", "mesNum": 2, "ano": 2023, "total": 20504.8, "ceramico": 20504.8, "prensa": 0, "sharePrensa": 0.0, "f1": 7331.2, "f2": 7017.4, "f3": 0.0, "f4": 6002.9, "agua1": 4394.2, "agua2": 3882.3, "agua3": 0.0, "agua4": 3599.6, "aguaTotal": 11876.2, "tph1": 60.1, "tph2": 70.5, "tph3": 0, "tph4": 55.7, "util1": 18.5, "util2": 16.0, "util3": 0.0, "util4": 16.3, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-03", "label": "Mar 23", "mes": "Mar", "mesNum": 3, "ano": 2023, "total": 49824.0, "ceramico": 49824.0, "prensa": 0, "sharePrensa": 0.0, "f1": 11338.3, "f2": 19634.8, "f3": 10977.7, "f4": 7862.2, "agua1": 7043.1, "agua2": 13336.1, "agua3": 7352.8, "agua4": 5403.8, "aguaTotal": 33135.8, "tph1": 37.7, "tph2": 56.0, "tph3": 45.5, "tph4": 41.1, "util1": 39.7, "util2": 47.6, "util3": 31.9, "util4": 25.8, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-04", "label": "Abr 23", "mes": "Abr", "mesNum": 4, "ano": 2023, "total": 34501.0, "ceramico": 34501.0, "prensa": 0, "sharePrensa": 0.0, "f1": 8649.6, "f2": 8898.5, "f3": 6731.2, "f4": 9104.8, "agua1": 5972.4, "agua2": 5579.8, "agua3": 4211.4, "agua4": 5714.4, "aguaTotal": 21478.1, "tph1": 70.8, "tph2": 73.2, "tph3": 58.2, "tph4": 66.7, "util1": 21.4, "util2": 18.5, "util3": 17.7, "util4": 19.3, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-05", "label": "May 23", "mes": "May", "mesNum": 5, "ano": 2023, "total": 71996.0, "ceramico": 71996.0, "prensa": 0, "sharePrensa": 0.0, "f1": 25331.0, "f2": 24777.3, "f3": 5324.0, "f4": 16563.7, "agua1": 14505.5, "agua2": 14907.0, "agua3": 3165.5, "agua4": 10062.3, "aguaTotal": 42640.2, "tph1": 64.7, "tph2": 69.4, "tph3": 49.6, "tph4": 45.7, "util1": 53.8, "util2": 49.5, "util3": 15.1, "util4": 50.2, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-06", "label": "Jun 23", "mes": "Jun", "mesNum": 6, "ano": 2023, "total": 61604.0, "ceramico": 61604.0, "prensa": 0, "sharePrensa": 0.0, "f1": 19255.5, "f2": 21793.1, "f3": 0.0, "f4": 20381.4, "agua1": 11762.5, "agua2": 13323.2, "agua3": 0.0, "agua4": 12587.6, "aguaTotal": 37673.3, "tph1": 56.9, "tph2": 60.0, "tph3": 0, "tph4": 49.9, "util1": 47.0, "util2": 50.4, "util3": 0.0, "util4": 56.8, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-07", "label": "Jul 23", "mes": "Jul", "mesNum": 7, "ano": 2023, "total": 28507.0, "ceramico": 28507.0, "prensa": 0, "sharePrensa": 0.0, "f1": 9546.0, "f2": 9461.5, "f3": 0.0, "f4": 9434.5, "agua1": 6439.2, "agua2": 6114.5, "agua3": 0.0, "agua4": 6412.6, "aguaTotal": 18966.4, "tph1": 39.8, "tph2": 42.4, "tph3": 0, "tph4": 46.5, "util1": 33.5, "util2": 30.6, "util3": 0.0, "util4": 28.5, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-08", "label": "Ago 23", "mes": "Ago", "mesNum": 8, "ano": 2023, "total": 36519.0, "ceramico": 36519.0, "prensa": 0, "sharePrensa": 0.0, "f1": 9778.4, "f2": 8783.3, "f3": 4920.6, "f4": 13021.7, "agua1": 6444.9, "agua2": 5658.8, "agua3": 3221.0, "agua4": 8763.0, "aguaTotal": 24087.8, "tph1": 46.1, "tph2": 45.4, "tph3": 51.8, "tph4": 55.5, "util1": 28.8, "util2": 27.3, "util3": 12.8, "util4": 32.7, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-09", "label": "Sep 23", "mes": "Sep", "mesNum": 9, "ano": 2023, "total": 0.0, "ceramico": 0.0, "prensa": 0, "sharePrensa": 0, "f1": 0.0, "f2": 0.0, "f3": 0.0, "f4": 0.0, "agua1": 0.0, "agua2": 0.0, "agua3": 0.0, "agua4": 0.0, "aguaTotal": 0.0, "tph1": 0, "tph2": 0, "tph3": 0, "tph4": 0, "util1": 0.0, "util2": 0.0, "util3": 0.0, "util4": 0.0, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-10", "label": "Oct 23", "mes": "Oct", "mesNum": 10, "ano": 2023, "total": 56993.0, "ceramico": 56993.0, "prensa": 0, "sharePrensa": 0.0, "f1": 620.6, "f2": 17861.3, "f3": 20373.4, "f4": 18137.8, "agua1": 285.3, "agua2": 10658.1, "agua3": 12233.6, "agua4": 10921.5, "aguaTotal": 34098.5, "tph1": 58.6, "tph2": 70.1, "tph3": 71.5, "tph4": 61.9, "util1": 1.5, "util2": 37.2, "util3": 41.8, "util4": 42.8, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-11", "label": "Nov 23", "mes": "Nov", "mesNum": 11, "ano": 2023, "total": 81800.0, "ceramico": 81800.0, "prensa": 0, "sharePrensa": 0.0, "f1": 19416.8, "f2": 28332.1, "f3": 27394.9, "f4": 5473.2, "agua1": 12090.6, "agua2": 17118.9, "agua3": 16910.7, "agua4": 3595.5, "aguaTotal": 49715.7, "tph1": 60.2, "tph2": 65.8, "tph3": 67.4, "tph4": 27.7, "util1": 44.8, "util2": 59.8, "util3": 56.5, "util4": 27.4, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2023-12", "label": "Dic 23", "mes": "Dic", "mesNum": 12, "ano": 2023, "total": 73371.0, "ceramico": 73371.0, "prensa": 0, "sharePrensa": 0.0, "f1": 20323.1, "f2": 28048.7, "f3": 24820.3, "f4": 0.0, "agua1": 12913.7, "agua2": 17689.1, "agua3": 16151.5, "agua4": 0.0, "aguaTotal": 46754.3, "tph1": 52.3, "tph2": 67.0, "tph3": 57.8, "tph4": 0, "util1": 67.7, "util2": 72.8, "util3": 74.6, "util4": 0.0, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-01", "label": "Ene 24", "mes": "Ene", "mesNum": 1, "ano": 2024, "total": 128303.0, "ceramico": 128303.0, "prensa": 0, "sharePrensa": 0.0, "f1": 32996.1, "f2": 36050.9, "f3": 35418.3, "f4": 23837.6, "agua1": 19912.7, "agua2": 21785.1, "agua3": 21249.7, "agua4": 13059.6, "aguaTotal": 76007.1, "tph1": 65.3, "tph2": 70.6, "tph3": 65.9, "tph4": 78.2, "util1": 69.5, "util2": 70.3, "util3": 73.8, "util4": 43.5, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-02", "label": "Feb 24", "mes": "Feb", "mesNum": 2, "ano": 2024, "total": 112856.0, "ceramico": 112856.0, "prensa": 0, "sharePrensa": 0.0, "f1": 26405.0, "f2": 29611.3, "f3": 28447.4, "f4": 28392.3, "agua1": 15802.9, "agua2": 17705.2, "agua3": 17018.0, "agua4": 17248.3, "aguaTotal": 67774.3, "tph1": 58.4, "tph2": 66.2, "tph3": 63.7, "tph4": 61.9, "util1": 66.7, "util2": 66.0, "util3": 65.9, "util4": 67.7, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-03", "label": "Mar 24", "mes": "Mar", "mesNum": 3, "ano": 2024, "total": 120711.0, "ceramico": 120711.0, "prensa": 0, "sharePrensa": 0.0, "f1": 30356.1, "f2": 21797.2, "f3": 32953.5, "f4": 35604.3, "agua1": 18830.5, "agua2": 13715.8, "agua3": 20172.7, "agua4": 21934.7, "aguaTotal": 74653.7, "tph1": 54.8, "tph2": 66.7, "tph3": 58.5, "tph4": 61.7, "util1": 75.6, "util2": 46.2, "util3": 76.9, "util4": 78.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-04", "label": "Abr 24", "mes": "Abr", "mesNum": 4, "ano": 2024, "total": 93560.0, "ceramico": 93560.0, "prensa": 0, "sharePrensa": 0.0, "f1": 16341.5, "f2": 27801.0, "f3": 17808.2, "f4": 29892.4, "agua1": 10408.4, "agua2": 17567.1, "agua3": 10366.5, "agua4": 18489.8, "aguaTotal": 56831.7, "tph1": 39.3, "tph2": 62.1, "tph3": 59.2, "tph4": 58.0, "util1": 59.8, "util2": 65.2, "util3": 42.3, "util4": 74.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-05", "label": "May 24", "mes": "May", "mesNum": 5, "ano": 2024, "total": 124972.0, "ceramico": 124972.0, "prensa": 0, "sharePrensa": 0.0, "f1": 31212.7, "f2": 33095.3, "f3": 30799.8, "f4": 29864.1, "agua1": 18227.0, "agua2": 19129.6, "agua3": 17935.0, "agua4": 17297.7, "aguaTotal": 72589.3, "tph1": 61.7, "tph2": 60.8, "tph3": 55.0, "tph4": 54.0, "util1": 67.9, "util2": 73.2, "util3": 75.3, "util4": 74.4, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-06", "label": "Jun 24", "mes": "Jun", "mesNum": 6, "ano": 2024, "total": 119868.0, "ceramico": 119868.0, "prensa": 0, "sharePrensa": 0.0, "f1": 31999.9, "f2": 31570.5, "f3": 27545.7, "f4": 28751.8, "agua1": 16478.2, "agua2": 16393.0, "agua3": 14481.1, "agua4": 15033.7, "aguaTotal": 62385.9, "tph1": 65.8, "tph2": 64.1, "tph3": 63.0, "tph4": 59.5, "util1": 67.6, "util2": 68.4, "util3": 60.7, "util4": 67.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-07", "label": "Jul 24", "mes": "Jul", "mesNum": 7, "ano": 2024, "total": 98348.0, "ceramico": 98348.0, "prensa": 0, "sharePrensa": 0.0, "f1": 26315.3, "f2": 25541.6, "f3": 22597.5, "f4": 23893.5, "agua1": 15163.3, "agua2": 14881.9, "agua3": 13190.0, "agua4": 13876.2, "aguaTotal": 57111.4, "tph1": 52.6, "tph2": 52.5, "tph3": 46.6, "tph4": 47.3, "util1": 68.6, "util2": 66.4, "util3": 66.2, "util4": 68.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-08", "label": "Ago 24", "mes": "Ago", "mesNum": 8, "ano": 2024, "total": 61172.0, "ceramico": 61172.0, "prensa": 0, "sharePrensa": 0.0, "f1": 15782.7, "f2": 15383.4, "f3": 14379.7, "f4": 15626.3, "agua1": 9147.9, "agua2": 9165.6, "agua3": 8469.9, "agua4": 9172.5, "aguaTotal": 35955.9, "tph1": 57.2, "tph2": 56.0, "tph3": 53.9, "tph4": 55.5, "util1": 37.1, "util2": 36.9, "util3": 35.9, "util4": 37.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-09", "label": "Sep 24", "mes": "Sep", "mesNum": 9, "ano": 2024, "total": 47755.0, "ceramico": 47755.0, "prensa": 0, "sharePrensa": 0.0, "f1": 12288.9, "f2": 12749.6, "f3": 10780.4, "f4": 11936.2, "agua1": 7636.5, "agua2": 8037.1, "agua3": 6556.3, "agua4": 7295.8, "aguaTotal": 29525.7, "tph1": 61.5, "tph2": 53.4, "tph3": 51.8, "tph4": 51.9, "util1": 29.0, "util2": 34.4, "util3": 29.5, "util4": 32.3, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-10", "label": "Oct 24", "mes": "Oct", "mesNum": 10, "ano": 2024, "total": 118016.0, "ceramico": 118016.0, "prensa": 0, "sharePrensa": 0.0, "f1": 35799.5, "f2": 27864.2, "f3": 25365.5, "f4": 28821.8, "agua1": 19907.7, "agua2": 15441.2, "agua3": 14009.4, "agua4": 16065.2, "aguaTotal": 65423.5, "tph1": 65.9, "tph2": 54.2, "tph3": 53.8, "tph4": 51.9, "util1": 73.0, "util2": 69.1, "util3": 63.4, "util4": 74.6, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-11", "label": "Nov 24", "mes": "Nov", "mesNum": 11, "ano": 2024, "total": 143165.0, "ceramico": 143165.0, "prensa": 0, "sharePrensa": 0.0, "f1": 39160.9, "f2": 37273.4, "f3": 32911.2, "f4": 33819.5, "agua1": 20233.1, "agua2": 19081.4, "agua3": 16793.7, "agua4": 17343.0, "aguaTotal": 73451.3, "tph1": 69.5, "tph2": 67.8, "tph3": 64.6, "tph4": 61.9, "util1": 78.3, "util2": 76.3, "util3": 70.8, "util4": 75.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2024-12", "label": "Dic 24", "mes": "Dic", "mesNum": 12, "ano": 2024, "total": 156404.0, "ceramico": 156404.0, "prensa": 0, "sharePrensa": 0.0, "f1": 39747.6, "f2": 38353.7, "f3": 38136.7, "f4": 40166.0, "agua1": 20577.8, "agua2": 19908.5, "agua3": 19676.5, "agua4": 20852.5, "aguaTotal": 81015.3, "tph1": 71.5, "tph2": 71.4, "tph3": 73.0, "tph4": 71.7, "util1": 73.5, "util2": 71.2, "util3": 69.1, "util4": 74.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-01", "label": "Ene 25", "mes": "Ene", "mesNum": 1, "ano": 2025, "total": 141591.0, "ceramico": 141591.0, "prensa": 0, "sharePrensa": 0.0, "f1": 36214.6, "f2": 34617.0, "f3": 37138.8, "f4": 33620.6, "agua1": 20552.0, "agua2": 19699.4, "agua3": 21049.2, "agua4": 19083.3, "aguaTotal": 80383.8, "tph1": 66.1, "tph2": 60.1, "tph3": 66.8, "tph4": 62.1, "util1": 77.7, "util2": 80.2, "util3": 77.3, "util4": 75.2, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-02", "label": "Feb 25", "mes": "Feb", "mesNum": 2, "ano": 2025, "total": 136293.0, "ceramico": 136293.0, "prensa": 0, "sharePrensa": 0.0, "f1": 34650.4, "f2": 34120.5, "f3": 35877.0, "f4": 31645.0, "agua1": 19435.1, "agua2": 19127.1, "agua3": 20217.5, "agua4": 17694.5, "aguaTotal": 76474.2, "tph1": 70.5, "tph2": 67.8, "tph3": 70.7, "tph4": 64.6, "util1": 73.2, "util2": 74.9, "util3": 75.5, "util4": 72.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-03", "label": "Mar 25", "mes": "Mar", "mesNum": 3, "ano": 2025, "total": 151554.0, "ceramico": 151554.0, "prensa": 0, "sharePrensa": 0.0, "f1": 35583.7, "f2": 37895.9, "f3": 42145.2, "f4": 35929.3, "agua1": 19522.3, "agua2": 21118.0, "agua3": 23036.5, "agua4": 19925.5, "aguaTotal": 83602.4, "tph1": 71.4, "tph2": 65.6, "tph3": 71.3, "tph4": 61.2, "util1": 67.0, "util2": 79.6, "util3": 79.5, "util4": 78.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-04", "label": "Abr 25", "mes": "Abr", "mesNum": 4, "ano": 2025, "total": 138640.0, "ceramico": 138640.0, "prensa": 0, "sharePrensa": 0.0, "f1": 37144.7, "f2": 34083.2, "f3": 34935.3, "f4": 32464.9, "agua1": 20290.6, "agua2": 18873.1, "agua3": 19014.1, "agua4": 18054.8, "aguaTotal": 76232.6, "tph1": 73.7, "tph2": 65.1, "tph3": 69.2, "tph4": 62.5, "util1": 70.0, "util2": 72.7, "util3": 70.1, "util4": 72.2, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-05", "label": "May 25", "mes": "May", "mesNum": 5, "ano": 2025, "total": 150006.0, "ceramico": 150006.0, "prensa": 0, "sharePrensa": 0.0, "f1": 38798.8, "f2": 40237.9, "f3": 38797.3, "f4": 32172.1, "agua1": 21253.3, "agua2": 22073.7, "agua3": 21326.3, "agua4": 17578.7, "aguaTotal": 82232.0, "tph1": 69.6, "tph2": 71.2, "tph3": 69.0, "tph4": 58.4, "util1": 74.9, "util2": 75.9, "util3": 75.6, "util4": 74.1, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-06", "label": "Jun 25", "mes": "Jun", "mesNum": 6, "ano": 2025, "total": 100312.0, "ceramico": 100312.0, "prensa": 0, "sharePrensa": 0.0, "f1": 25730.7, "f2": 26895.3, "f3": 25184.6, "f4": 22466.4, "agua1": 15748.9, "agua2": 16525.6, "agua3": 15482.9, "agua4": 13585.5, "aguaTotal": 61342.9, "tph1": 55.3, "tph2": 56.1, "tph3": 56.6, "tph4": 48.8, "util1": 64.6, "util2": 66.6, "util3": 61.8, "util4": 63.9, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-07", "label": "Jul 25", "mes": "Jul", "mesNum": 7, "ano": 2025, "total": 130395.0, "ceramico": 130395.0, "prensa": 0, "sharePrensa": 0.0, "f1": 33524.9, "f2": 35155.5, "f3": 35422.3, "f4": 26292.3, "agua1": 16815.6, "agua2": 17482.4, "agua3": 17952.9, "agua4": 13291.2, "aguaTotal": 65542.0, "tph1": 68.1, "tph2": 73.4, "tph3": 67.6, "tph4": 57.2, "util1": 66.2, "util2": 64.3, "util3": 70.5, "util4": 61.7, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-08", "label": "Ago 25", "mes": "Ago", "mesNum": 8, "ano": 2025, "total": 140125.0, "ceramico": 140125.0, "prensa": 0, "sharePrensa": 0.0, "f1": 33470.8, "f2": 38683.5, "f3": 37255.2, "f4": 30715.5, "agua1": 17291.2, "agua2": 20014.5, "agua3": 19251.1, "agua4": 15923.9, "aguaTotal": 72480.8, "tph1": 56.0, "tph2": 65.4, "tph3": 62.7, "tph4": 53.6, "util1": 80.4, "util2": 79.5, "util3": 79.9, "util4": 77.0, "ciclosFP1": 0, "ciclosFP2": 0, "ciclosTotal": 0}, {"key": "2025-09", "label": "Sep 25", "mes": "Sep", "mesNum": 9, "ano": 2025, "total": 131250.0, "ceramico": 129788.0, "prensa": 1462, "sharePrensa": 1.1, "f1": 30890.1, "f2": 35755.4, "f3": 32570.6, "f4": 30572.0, "agua1": 14539.9, "agua2": 16981.5, "agua3": 15415.2, "agua4": 14480.8, "aguaTotal": 61417.4, "tph1": 67.6, "tph2": 74.5, "tph3": 71.7, "tph4": 69.1, "util1": 66.8, "util2": 70.2, "util3": 66.4, "util4": 64.7, "ciclosFP1": 86, "ciclosFP2": 0, "ciclosTotal": 86}, {"key": "2025-10", "label": "Oct 25", "mes": "Oct", "mesNum": 10, "ano": 2025, "total": 121552.0, "ceramico": 116418.0, "prensa": 5134, "sharePrensa": 4.2, "f1": 26516.8, "f2": 29481.5, "f3": 27827.0, "f4": 32592.6, "agua1": 12455.6, "agua2": 13953.5, "agua3": 13090.4, "agua4": 15331.7, "aguaTotal": 54831.2, "tph1": 70.5, "tph2": 75.7, "tph3": 70.6, "tph4": 80.4, "util1": 50.6, "util2": 53.0, "util3": 53.0, "util4": 54.5, "ciclosFP1": 284, "ciclosFP2": 18, "ciclosTotal": 302}, {"key": "2025-11", "label": "Nov 25", "mes": "Nov", "mesNum": 11, "ano": 2025, "total": 155909.0, "ceramico": 145301.0, "prensa": 10608, "sharePrensa": 6.8, "f1": 31388.4, "f2": 37445.6, "f3": 36198.7, "f4": 40268.3, "agua1": 15557.9, "agua2": 18602.2, "agua3": 18058.9, "agua4": 19997.8, "aguaTotal": 72216.8, "tph1": 58.8, "tph2": 69.7, "tph3": 65.9, "tph4": 74.3, "util1": 74.2, "util2": 74.6, "util3": 76.2, "util4": 75.3, "ciclosFP1": 202, "ciclosFP2": 422, "ciclosTotal": 624}, {"key": "2025-12", "label": "Dic 25", "mes": "Dic", "mesNum": 12, "ano": 2025, "total": 207068.0, "ceramico": 157615.0, "prensa": 49453, "sharePrensa": 23.9, "f1": 35869.1, "f2": 39730.5, "f3": 38436.3, "f4": 41361.2, "agua1": 17024.1, "agua2": 18901.8, "agua3": 18255.6, "agua4": 19753.5, "aguaTotal": 73935.0, "tph1": 63.5, "tph2": 70.0, "tph3": 67.8, "tph4": 72.5, "util1": 76.6, "util2": 76.9, "util3": 77.0, "util4": 77.4, "ciclosFP1": 1516, "ciclosFP2": 1393, "ciclosTotal": 2909}, {"key": "2026-01", "label": "Ene 26", "mes": "Ene", "mesNum": 1, "ano": 2026, "total": 148144.0, "ceramico": 118513.0, "prensa": 29631, "sharePrensa": 20.0, "f1": 29420.1, "f2": 22282.5, "f3": 31057.1, "f4": 35753.4, "agua1": 14992.0, "agua2": 10925.2, "agua3": 15915.8, "agua4": 18169.3, "aguaTotal": 60002.3, "tph1": 53.5, "tph2": 63.7, "tph3": 58.0, "tph4": 65.7, "util1": 74.0, "util2": 47.0, "util3": 74.3, "util4": 73.1, "ciclosFP1": 812, "ciclosFP2": 931, "ciclosTotal": 1743}, {"key": "2026-02", "label": "Feb 26", "mes": "Feb", "mesNum": 2, "ano": 2026, "total": 142957.0, "ceramico": 112391.0, "prensa": 30566, "sharePrensa": 21.4, "f1": 25362.0, "f2": 25168.3, "f3": 28997.2, "f4": 32863.6, "agua1": 12574.5, "agua2": 12415.6, "agua3": 14522.5, "agua4": 16531.3, "aguaTotal": 56043.8, "tph1": 51.0, "tph2": 64.8, "tph3": 56.4, "tph4": 67.7, "util1": 74.2, "util2": 56.5, "util3": 75.1, "util4": 70.9, "ciclosFP1": 918, "ciclosFP2": 880, "ciclosTotal": 1798}, {"key": "2026-03", "label": "Mar 26", "mes": "Mar", "mesNum": 3, "ano": 2026, "total": 168285.0, "ceramico": 126346.0, "prensa": 41939, "sharePrensa": 24.9, "f1": 23943.6, "f2": 32006.7, "f3": 29316.0, "f4": 41045.7, "agua1": 12429.8, "agua2": 16501.4, "agua3": 15273.8, "agua4": 21325.4, "aguaTotal": 65530.4, "tph1": 42.8, "tph2": 56.9, "tph3": 50.0, "tph4": 68.5, "util1": 75.2, "util2": 75.6, "util3": 78.8, "util4": 80.5, "ciclosFP1": 1242, "ciclosFP2": 1225, "ciclosTotal": 2467}, {"key": "2026-04", "label": "Abr 26", "mes": "Abr", "mesNum": 4, "ano": 2026, "total": 129640.0, "ceramico": 95351.0, "prensa": 34289, "sharePrensa": 26.4, "f1": 16975.5, "f2": 22018.0, "f3": 20482.2, "f4": 35792.3, "agua1": 8707.1, "agua2": 11214.7, "agua3": 10483.0, "agua4": 18148.9, "aguaTotal": 48553.8, "tph1": 42.0, "tph2": 45.8, "tph3": 40.3, "tph4": 67.3, "util1": 56.1, "util2": 66.8, "util3": 70.6, "util4": 73.8, "ciclosFP1": 983, "ciclosFP2": 1034, "ciclosTotal": 2017}, {"key": "2026-05", "label": "May 26", "mes": "May", "mesNum": 5, "ano": 2026, "total": 140950.0, "ceramico": 101476.0, "prensa": 39474, "sharePrensa": 28.0, "f1": 27180.2, "f2": 22611.5, "f3": 19620.9, "f4": 32063.4, "agua1": 13973.8, "agua2": 11557.4, "agua3": 9657.1, "agua4": 16102.2, "aguaTotal": 51290.5, "tph1": 52.1, "tph2": 41.5, "tph3": 40.1, "tph4": 56.9, "util1": 70.1, "util2": 73.2, "util3": 65.7, "util4": 75.7, "ciclosFP1": 1107, "ciclosFP2": 1215, "ciclosTotal": 2322}, {"key": "2026-06", "label": "Jun 26", "mes": "Jun", "mesNum": 6, "ano": 2026, "total": 130362.0, "ceramico": 93931.0, "prensa": 36431, "sharePrensa": 27.9, "f1": 24863.8, "f2": 20791.3, "f3": 25322.6, "f4": 22953.3, "agua1": 13241.8, "agua2": 11037.1, "agua3": 13354.5, "agua4": 12097.9, "aguaTotal": 49731.2, "tph1": 45.6, "tph2": 38.8, "tph3": 46.6, "tph4": 42.0, "util1": 74.5, "util2": 73.2, "util3": 74.2, "util4": 74.7, "ciclosFP1": 1000, "ciclosFP2": 1143, "ciclosTotal": 2143}, {"key": "2026-07", "label": "Jul 26", "mes": "Jul", "mesNum": 7, "ano": 2026, "total": 65354.0, "ceramico": 49187.0, "prensa": 16167, "sharePrensa": 24.7, "f1": 14952.3, "f2": 10243.1, "f3": 13273.1, "f4": 10718.5, "agua1": 7632.9, "agua2": 5484.3, "agua3": 6798.3, "agua4": 5412.7, "aguaTotal": 25328.2, "tph1": 56.9, "tph2": 51.7, "tph3": 49.2, "tph4": 41.3, "util1": 81.2, "util2": 64.7, "util3": 83.2, "util4": 80.2, "ciclosFP1": 498, "ciclosFP2": 453, "ciclosTotal": 951}];
+const RAW_FALLBACK={"header": ["FECHA", "AÑO", "MES", "TURNO", "HORAS OPERACION FILTRO 1", "HORAS OPERACION FILTRO 2", "HORAS OPERACION FILTRO 3", "HORAS OPERACION FILTRO 4", "PROMEDIO TPH F1", "PROMEDIO TPH F2", "PROMEDIO TPH F3", "PROMEDIO TPH F4"], "rows": [["2025-06-21", 2025, "junio", "TD", 9.05, 7.88, 7.8, 7.53, 70.63, 79.96, 75.31, 61.33], ["2025-06-21", 2025, "junio", "TN", 12.0, 11.25, 11.25, 11.25, 61.08, 65.37, 66.41, 51.25], ["2025-06-22", 2025, "junio", "TD", 10.53, 10.57, 10.62, 12.0, 57.52, 51.49, 54.62, 49.92], ["2025-06-22", 2025, "junio", "TN", 3.83, 3.83, 3.83, 3.83, 64.7, 61.01, 59.16, 49.91], ["2025-06-23", 2025, "junio", "TD", 18.6, 19.0, 10.63, 10.53, 43.72, 37.38, 73.14, 56.85], ["2025-06-23", 2025, "junio", "TN", 12.0, 11.25, 11.25, 11.25, 54.8, 53.76, 49.7, 33.74], ["2025-06-24", 2025, "junio", "TD", 7.0, 7.47, 8.45, 8.5, 67.62, 64.93, 67.27, 59.69], ["2025-06-24", 2025, "junio", "TN", 7.18, 12.0, 9.88, 10.38, 60.3, 54.82, 58.48, 54.99], ["2025-06-25", 2025, "junio", "TD", 10.17, 4.32, 6.42, 7.13, 74.16, 67.11, 78.4, 59.33], ["2025-06-25", 2025, "junio", "TN", 2.58, 12.0, 9.0, 9.58, 65.74, 71.38, 67.62, 56.35], ["2025-06-26", 2025, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-26", 2025, "junio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-27", 2025, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-27", 2025, "junio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-28", 2025, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-28", 2025, "junio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-29", 2025, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-29", 2025, "junio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-30", 2025, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-06-30", 2025, "junio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-01", 2025, "julio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-01", 2025, "julio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-02", 2025, "julio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-02", 2025, "julio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-03", 2025, "julio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-03", 2025, "julio", "TN", 0.62, 0.0, 0.87, 0.0, 56.95, 0.0, 59.87, 0.0], ["2025-07-04", 2025, "julio", "TD", 6.17, 4.42, 6.92, 0.0, 88.99, 94.93, 81.54, 0.0], ["2025-07-04", 2025, "julio", "TN", 9.97, 0.0, 10.57, 0.0, 66.13, 0.0, 68.6, 0.0], ["2025-07-05", 2025, "julio", "TD", 9.08, 0.0, 11.25, 0.0, 73.02, 0.0, 72.33, 0.0], ["2025-07-05", 2025, "julio", "TN", 10.05, 0.0, 12.0, 0.0, 55.16, 0.0, 49.64, 0.0], ["2025-07-06", 2025, "julio", "TD", 4.75, 7.0, 11.25, 2.5, 58.43, 47.67, 49.07, 52.28], ["2025-07-06", 2025, "julio", "TN", 12.0, 10.48, 10.62, 10.32, 57.63, 42.53, 42.53, 61.74], ["2025-07-07", 2025, "julio", "TD", 5.92, 11.25, 12.0, 11.25, 48.37, 50.8, 48.57, 47.95], ["2025-07-07", 2025, "julio", "TN", 0.0, 10.62, 10.6, 12.0, 0.0, 48.19, 52.33, 63.64], ["2025-07-08", 2025, "julio", "TD", 6.67, 11.25, 11.25, 9.5, 61.08, 68.05, 66.33, 58.0], ["2025-07-08", 2025, "julio", "TN", 5.35, 8.17, 8.08, 5.65, 51.01, 56.77, 53.89, 42.98], ["2025-07-09", 2025, "julio", "TD", 2.25, 1.33, 2.5, 2.67, 66.66, 75.55, 64.44, 53.33], ["2025-07-09", 2025, "julio", "TN", 9.77, 11.83, 10.48, 10.4, 62.16, 70.17, 64.09, 55.92], ["2025-07-10", 2025, "julio", "TD", 8.13, 6.67, 7.13, 6.57, 71.99, 78.0, 75.29, 61.58], ["2025-07-10", 2025, "julio", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-11", 2025, "julio", "TD", 6.58, 6.58, 6.58, 6.58, 79.78, 86.43, 82.16, 70.76], ["2025-07-11", 2025, "julio", "TN", 10.32, 10.53, 10.62, 10.48, 74.48, 79.55, 76.64, 64.87], ["2025-07-12", 2025, "julio", "TD", 10.33, 10.25, 10.42, 9.27, 85.97, 97.02, 93.18, 78.73], ["2025-07-12", 2025, "julio", "TN", 10.38, 9.95, 10.62, 10.92, 74.94, 79.96, 77.41, 64.53], ["2025-07-13", 2025, "julio", "TD", 10.25, 10.0, 10.55, 10.25, 70.47, 79.92, 76.41, 59.25], ["2025-07-13", 2025, "julio", "TN", 8.13, 6.65, 7.03, 7.2, 59.7, 69.65, 66.08, 49.09], ["2025-07-14", 2025, "julio", "TD", 7.02, 7.05, 7.05, 6.0, 63.05, 70.8, 66.71, 53.19], ["2025-07-14", 2025, "julio", "TN", 10.48, 10.57, 10.65, 12.0, 53.77, 60.27, 56.07, 46.11], ["2025-07-15", 2025, "julio", "TD", 10.33, 10.38, 10.67, 10.33, 70.0, 76.25, 68.4, 54.72], ["2025-07-15", 2025, "julio", "TN", 11.25, 11.25, 12.0, 11.25, 63.94, 67.04, 65.31, 51.9], ["2025-07-16", 2025, "julio", "TD", 10.6, 11.78, 10.6, 10.47, 93.85, 98.57, 90.72, 75.48], ["2025-07-16", 2025, "julio", "TN", 9.33, 11.83, 11.83, 9.33, 69.05, 72.69, 59.97, 56.33], ["2025-07-17", 2025, "julio", "TD", 1.43, 0.8, 0.33, 1.22, 71.77, 73.71, 71.77, 65.95], ["2025-07-17", 2025, "julio", "TN", 12.0, 12.0, 11.25, 12.0, 79.85, 75.29, 80.68, 59.32], ["2025-07-18", 2025, "julio", "TD", 17.0, 17.0, 17.0, 17.0, 34.5, 37.29, 31.7, 27.04], ["2025-07-18", 2025, "julio", "TN", 10.25, 10.25, 11.0, 12.17, 54.54, 58.14, 53.68, 46.32], ["2025-07-19", 2025, "julio", "TD", 10.83, 8.58, 9.45, 9.32, 56.74, 55.96, 54.0, 43.55], ["2025-07-19", 2025, "julio", "TN", 11.25, 5.42, 11.25, 11.25, 54.4, 62.05, 56.7, 46.58], ["2025-07-20", 2025, "julio", "TD", 10.73, 10.53, 10.67, 12.0, 67.77, 77.57, 76.26, 56.84], ["2025-07-20", 2025, "julio", "TN", 11.25, 11.25, 11.33, 11.25, 63.9, 71.71, 60.96, 52.58], ["2025-07-21", 2025, "julio", "TD", 10.02, 9.95, 9.95, 9.75, 77.4, 80.77, 72.78, 64.5], ["2025-07-21", 2025, "julio", "TN", 12.0, 10.5, 11.17, 11.25, 59.98, 83.2, 72.11, 57.91], ["2025-07-22", 2025, "julio", "TD", 10.42, 10.3, 10.63, 9.42, 94.79, 100.02, 99.52, 77.54], ["2025-07-22", 2025, "julio", "TN", 8.25, 10.42, 12.0, 9.25, 65.16, 69.11, 65.16, 49.36], ["2025-07-23", 2025, "julio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-23", 2025, "julio", "TN", 4.08, 3.33, 3.5, 0.0, 66.04, 72.65, 66.04, 0.0], ["2025-07-24", 2025, "julio", "TD", 9.85, 9.82, 10.12, 6.83, 64.76, 67.91, 65.88, 54.72], ["2025-07-24", 2025, "julio", "TN", 10.3, 11.58, 10.25, 10.12, 60.7, 64.49, 64.62, 46.41], ["2025-07-25", 2025, "julio", "TD", 9.15, 7.75, 8.67, 3.68, 69.89, 77.03, 75.02, 60.08], ["2025-07-25", 2025, "julio", "TN", 10.0, 10.33, 10.5, 10.92, 85.73, 95.15, 90.81, 64.12], ["2025-07-26", 2025, "julio", "TD", 10.35, 10.52, 9.45, 11.43, 84.99, 96.63, 94.39, 73.13], ["2025-07-26", 2025, "julio", "TN", 10.6, 10.33, 12.0, 11.67, 72.27, 81.93, 76.52, 61.64], ["2025-07-27", 2025, "julio", "TD", 11.9, 10.58, 10.62, 9.45, 92.93, 110.35, 101.94, 81.38], ["2025-07-27", 2025, "julio", "TN", 10.0, 10.45, 10.25, 10.17, 59.68, 69.63, 64.6, 52.26], ["2025-07-28", 2025, "julio", "TD", 10.43, 10.58, 10.62, 10.45, 78.82, 90.46, 81.2, 69.01], ["2025-07-28", 2025, "julio", "TN", 10.25, 12.0, 10.45, 10.28, 63.69, 75.76, 64.49, 55.54], ["2025-07-29", 2025, "julio", "TD", 10.43, 10.5, 10.53, 10.32, 70.75, 80.19, 65.86, 61.37], ["2025-07-29", 2025, "julio", "TN", 10.53, 10.62, 5.62, 12.0, 70.37, 79.52, 64.87, 58.6], ["2025-07-30", 2025, "julio", "TD", 11.17, 11.25, 9.42, 11.25, 86.14, 89.88, 72.02, 67.62], ["2025-07-30", 2025, "julio", "TN", 10.33, 12.0, 12.0, 7.97, 67.4, 71.25, 57.77, 57.77], ["2025-07-31", 2025, "julio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-07-31", 2025, "julio", "TN", 12.0, 10.13, 10.17, 12.0, 53.35, 54.96, 53.35, 38.8], ["2025-08-01", 2025, "agosto", "TD", 11.25, 11.25, 11.25, 11.25, 67.67, 79.1, 77.35, 61.04], ["2025-08-01", 2025, "agosto", "TN", 10.5, 10.52, 10.58, 10.53, 46.73, 50.85, 50.05, 40.06], ["2025-08-02", 2025, "agosto", "TD", 11.25, 12.0, 11.25, 11.25, 60.45, 68.72, 73.68, 58.17], ["2025-08-02", 2025, "agosto", "TN", 10.63, 10.73, 10.67, 10.55, 46.21, 53.31, 54.12, 40.87], ["2025-08-03", 2025, "agosto", "TD", 10.0, 8.5, 9.25, 9.25, 55.29, 61.77, 61.12, 47.86], ["2025-08-03", 2025, "agosto", "TN", 10.47, 10.48, 10.6, 10.58, 47.55, 56.42, 54.54, 45.98], ["2025-08-04", 2025, "agosto", "TD", 8.5, 9.67, 11.25, 11.25, 60.21, 78.05, 68.3, 62.44], ["2025-08-04", 2025, "agosto", "TN", 10.55, 10.62, 10.53, 10.57, 56.39, 63.04, 60.26, 49.6], ["2025-08-05", 2025, "agosto", "TD", 10.33, 10.33, 11.08, 10.33, 60.56, 67.72, 62.69, 56.96], ["2025-08-05", 2025, "agosto", "TN", 12.0, 7.4, 6.93, 10.88, 51.12, 56.8, 47.34, 43.55], ["2025-08-06", 2025, "agosto", "TD", 1.25, 1.58, 0.92, 0.0, 39.08, 45.88, 44.18, 0.0], ["2025-08-06", 2025, "agosto", "TN", 12.0, 12.0, 12.0, 9.63, 57.72, 65.97, 59.78, 53.6], ["2025-08-07", 2025, "agosto", "TD", 9.53, 9.85, 10.02, 9.93, 69.92, 72.51, 69.99, 57.4], ["2025-08-07", 2025, "agosto", "TN", 6.92, 10.6, 10.58, 10.47, 57.3, 63.84, 63.04, 51.57], ["2025-08-08", 2025, "agosto", "TD", 10.38, 10.48, 11.0, 12.0, 75.46, 83.41, 79.79, 65.28], ["2025-08-08", 2025, "agosto", "TN", 12.0, 10.47, 10.77, 10.35, 56.41, 65.54, 62.25, 49.66], ["2025-08-09", 2025, "agosto", "TD", 10.27, 10.4, 10.17, 10.17, 74.59, 86.97, 83.98, 67.66], ["2025-08-09", 2025, "agosto", "TN", 10.33, 10.53, 10.63, 10.52, 62.16, 71.88, 68.93, 55.39], ["2025-08-10", 2025, "agosto", "TD", 9.17, 10.0, 9.42, 8.43, 78.55, 88.21, 86.04, 69.68], ["2025-08-10", 2025, "agosto", "TN", 10.45, 9.83, 10.72, 10.63, 58.65, 66.61, 64.56, 52.22], ["2025-08-11", 2025, "agosto", "TD", 10.8, 8.68, 9.28, 9.1, 55.49, 62.97, 60.96, 46.15], ["2025-08-11", 2025, "agosto", "TN", 10.57, 10.33, 10.65, 12.0, 36.46, 42.86, 41.93, 33.19], ["2025-08-12", 2025, "agosto", "TD", 10.3, 10.27, 10.22, 10.03, 42.57, 51.49, 52.91, 37.31], ["2025-08-12", 2025, "agosto", "TN", 10.33, 12.0, 11.67, 8.5, 28.76, 34.75, 32.36, 27.56], ["2025-08-13", 2025, "agosto", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-08-13", 2025, "agosto", "TN", 9.0, 8.33, 8.42, 9.5, 36.52, 37.73, 38.95, 30.43], ["2025-08-14", 2025, "agosto", "TD", 8.73, 9.0, 9.27, 8.6, 43.34, 49.43, 44.05, 33.89], ["2025-08-14", 2025, "agosto", "TN", 12.0, 11.25, 11.25, 11.25, 34.58, 39.33, 40.06, 33.06], ["2025-08-15", 2025, "agosto", "TD", 9.95, 12.0, 10.65, 10.32, 46.19, 52.35, 51.56, 38.97], ["2025-08-15", 2025, "agosto", "TN", 7.25, 7.25, 8.0, 8.0, 43.59, 53.26, 49.13, 42.99], ["2025-08-16", 2025, "agosto", "TD", 8.08, 7.95, 8.52, 8.6, 64.7, 73.33, 69.02, 56.08], ["2025-08-16", 2025, "agosto", "TN", 11.25, 11.25, 9.75, 11.25, 34.38, 37.01, 35.75, 28.12], ["2025-08-17", 2025, "agosto", "TD", 10.52, 10.57, 12.0, 10.45, 41.08, 50.96, 45.19, 40.69], ["2025-08-17", 2025, "agosto", "TN", 28.25, 11.25, 11.25, 11.25, 22.7, 57.57, 57.86, 46.23], ["2025-08-18", 2025, "agosto", "TD", 10.78, 9.42, 9.78, 9.37, 64.04, 70.44, 70.44, 51.77], ["2025-08-18", 2025, "agosto", "TN", 7.17, 8.75, 8.17, 8.25, 43.15, 50.34, 46.32, 40.74], ["2025-08-19", 2025, "agosto", "TD", 2.6, 2.27, 2.33, 2.65, 81.84, 86.65, 86.65, 67.4], ["2025-08-19", 2025, "agosto", "TN", 8.73, 12.0, 12.0, 8.75, 63.23, 73.11, 69.16, 51.38], ["2025-08-20", 2025, "agosto", "TD", 0.62, 0.5, 0.33, 0.0, 253.39, 262.44, 289.58, 0.0], ["2025-08-20", 2025, "agosto", "TN", 12.0, 12.0, 12.0, 10.0, 55.12, 61.25, 65.33, 46.96], ["2025-08-21", 2025, "agosto", "TD", 7.1, 9.45, 10.15, 3.13, 61.09, 67.14, 69.64, 49.12], ["2025-08-21", 2025, "agosto", "TN", 8.8, 10.12, 10.32, 10.83, 55.46, 65.13, 62.83, 54.73], ["2025-08-22", 2025, "agosto", "TD", 10.4, 9.73, 8.82, 9.47, 62.11, 77.05, 72.17, 66.0], ["2025-08-22", 2025, "agosto", "TN", 10.42, 11.67, 10.3, 10.23, 50.14, 59.25, 56.4, 54.98], ["2025-08-23", 2025, "agosto", "TD", 10.88, 9.42, 9.95, 6.03, 78.35, 88.76, 86.74, 88.08], ["2025-08-23", 2025, "agosto", "TN", 7.83, 10.75, 11.53, 10.3, 70.98, 73.21, 79.15, 73.21], ["2025-08-24", 2025, "agosto", "TD", 9.23, 11.25, 10.32, 10.47, 90.65, 101.17, 98.76, 87.79], ["2025-08-24", 2025, "agosto", "TN", 10.32, 10.72, 10.55, 11.0, 66.2, 74.8, 70.39, 62.99], ["2025-08-25", 2025, "agosto", "TD", 7.78, 6.83, 7.92, 8.95, 65.98, 75.27, 70.68, 62.74], ["2025-08-25", 2025, "agosto", "TN", 10.17, 8.67, 8.77, 10.17, 57.7, 67.56, 62.27, 56.35], ["2025-08-26", 2025, "agosto", "TD", 10.27, 10.22, 10.52, 10.25, 57.81, 68.38, 62.03, 55.95], ["2025-08-26", 2025, "agosto", "TN", 9.53, 12.0, 10.7, 7.9, 59.39, 67.64, 63.56, 57.74], ["2025-08-27", 2025, "agosto", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-08-27", 2025, "agosto", "TN", 12.0, 12.0, 10.6, 10.13, 57.75, 71.22, 70.35, 71.22], ["2025-08-28", 2025, "agosto", "TD", 10.92, 10.92, 11.25, 10.83, 64.8, 72.95, 68.12, 68.21], ["2025-08-28", 2025, "agosto", "TN", 10.18, 10.58, 10.62, 12.0, 65.46, 69.44, 62.25, 61.72], ["2025-08-29", 2025, "agosto", "TD", 11.25, 11.25, 11.17, 11.25, 70.44, 83.01, 71.7, 70.76], ["2025-08-29", 2025, "agosto", "TN", 10.35, 10.05, 12.0, 10.5, 61.88, 74.77, 66.69, 67.89], ["2025-08-30", 2025, "agosto", "TD", 11.25, 11.58, 11.25, 11.25, 71.88, 74.59, 72.66, 70.3], ["2025-08-30", 2025, "agosto", "TN", 10.4, 10.4, 10.63, 9.55, 52.89, 56.38, 53.46, 50.7], ["2025-08-31", 2025, "agosto", "TD", 12.0, 11.25, 11.25, 11.25, 67.04, 74.77, 62.71, 57.76], ["2025-08-31", 2025, "agosto", "TN", 10.28, 10.48, 10.58, 10.6, 50.56, 51.16, 50.56, 51.67], ["2025-09-01", 2025, "septiembre", "TD", 10.17, 10.17, 10.83, 10.92, 61.74, 61.39, 61.54, 64.07], ["2025-09-01", 2025, "septiembre", "TN", 10.45, 10.53, 10.58, 10.6, 59.69, 54.89, 53.19, 60.58], ["2025-09-02", 2025, "septiembre", "TD", 9.58, 11.25, 9.58, 11.25, 49.79, 49.74, 41.08, 56.23], ["2025-09-02", 2025, "septiembre", "TN", 11.18, 7.75, 10.73, 8.2, 65.89, 59.9, 51.91, 67.89], ["2025-09-03", 2025, "septiembre", "TD", 0.42, 0.92, 0.55, 1.17, 76.87, 79.27, 72.07, 64.86], ["2025-09-03", 2025, "septiembre", "TN", 8.65, 10.4, 6.85, 10.17, 66.81, 74.07, 66.68, 69.15], ["2025-09-04", 2025, "septiembre", "TD", 6.37, 4.85, 4.88, 5.08, 106.67, 117.67, 104.54, 109.9], ["2025-09-04", 2025, "septiembre", "TN", 3.65, 3.6, 3.47, 0.0, 44.21, 50.1, 44.21, 0.0], ["2025-09-05", 2025, "septiembre", "TD", 10.25, 10.33, 4.0, 10.13, 49.36, 58.5, 47.53, 60.33], ["2025-09-05", 2025, "septiembre", "TN", 9.22, 9.02, 0.0, 9.02, 49.08, 57.57, 0.0, 51.52], ["2025-09-06", 2025, "septiembre", "TD", 10.5, 10.13, 5.5, 10.25, 70.13, 80.31, 83.12, 72.65], ["2025-09-06", 2025, "septiembre", "TN", 8.98, 8.28, 8.35, 8.58, 60.08, 69.43, 63.99, 61.85], ["2025-09-07", 2025, "septiembre", "TD", 9.42, 10.83, 10.25, 9.67, 61.98, 69.72, 68.02, 64.22], ["2025-09-07", 2025, "septiembre", "TN", 5.23, 8.37, 9.17, 10.38, 58.42, 63.94, 62.15, 56.88], ["2025-09-08", 2025, "septiembre", "TD", 9.75, 8.0, 6.17, 7.75, 74.86, 86.44, 84.47, 79.45], ["2025-09-08", 2025, "septiembre", "TN", 8.53, 9.37, 10.48, 10.35, 74.18, 83.14, 79.36, 78.28], ["2025-09-09", 2025, "septiembre", "TD", 10.25, 10.33, 10.3, 10.17, 89.92, 95.3, 93.32, 90.13], ["2025-09-09", 2025, "septiembre", "TN", 10.83, 12.0, 8.08, 12.0, 73.74, 84.59, 73.74, 75.91], ["2025-09-10", 2025, "septiembre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-10", 2025, "septiembre", "TN", 12.0, 12.0, 9.5, 12.0, 69.81, 79.78, 74.11, 67.82], ["2025-09-11", 2025, "septiembre", "TD", 8.75, 7.35, 9.62, 9.32, 94.47, 93.7, 89.39, 93.6], ["2025-09-11", 2025, "septiembre", "TN", 11.25, 11.25, 12.0, 11.25, 72.02, 80.92, 77.82, 75.53], ["2025-09-12", 2025, "septiembre", "TD", 6.32, 6.27, 6.25, 6.05, 69.9, 82.4, 71.95, 73.62], ["2025-09-12", 2025, "septiembre", "TN", 8.75, 8.75, 9.33, 7.17, 59.93, 61.16, 58.06, 56.18], ["2025-09-13", 2025, "septiembre", "TD", 12.0, 10.3, 10.35, 10.47, 90.23, 85.63, 92.8, 84.45], ["2025-09-13", 2025, "septiembre", "TN", 9.17, 11.25, 11.25, 11.25, 67.7, 76.65, 81.66, 73.2], ["2025-09-14", 2025, "septiembre", "TD", 10.37, 12.0, 10.48, 12.0, 95.31, 106.49, 104.01, 99.06], ["2025-09-14", 2025, "septiembre", "TN", 11.25, 11.17, 11.08, 10.17, 77.65, 86.67, 72.33, 88.62], ["2025-09-15", 2025, "septiembre", "TD", 10.32, 9.88, 12.0, 10.38, 83.2, 93.94, 100.98, 82.58], ["2025-09-15", 2025, "septiembre", "TN", 12.0, 11.25, 11.25, 11.25, 67.43, 77.71, 78.21, 68.51], ["2025-09-16", 2025, "septiembre", "TD", 10.48, 10.42, 10.48, 10.42, 74.13, 79.19, 80.58, 70.97], ["2025-09-16", 2025, "septiembre", "TN", 10.42, 9.7, 12.0, 9.0, 56.11, 63.97, 62.19, 56.86], ["2025-09-17", 2025, "septiembre", "TD", 4.2, 2.67, 2.25, 2.08, 45.99, 53.34, 51.86, 50.37], ["2025-09-17", 2025, "septiembre", "TN", 11.75, 9.85, 12.0, 6.67, 65.65, 78.3, 74.12, 69.89], ["2025-09-18", 2025, "septiembre", "TD", 9.8, 12.0, 10.52, 0.0, 66.25, 72.67, 72.62, 0.0], ["2025-09-18", 2025, "septiembre", "TN", 10.17, 10.33, 10.33, 0.0, 69.98, 76.54, 78.73, 0.0], ["2025-09-19", 2025, "septiembre", "TD", 9.92, 9.77, 10.13, 9.73, 70.32, 77.74, 77.36, 71.87], ["2025-09-19", 2025, "septiembre", "TN", 10.32, 10.17, 10.75, 10.33, 66.39, 77.46, 75.25, 68.09], ["2025-09-20", 2025, "septiembre", "TD", 10.18, 10.45, 9.93, 9.22, 65.88, 75.39, 72.7, 66.85], ["2025-09-20", 2025, "septiembre", "TN", 10.35, 10.5, 10.0, 8.88, 65.26, 76.82, 73.85, 68.04], ["2025-09-21", 2025, "septiembre", "TD", 10.37, 10.1, 10.57, 8.88, 76.05, 87.35, 85.24, 76.51], ["2025-09-21", 2025, "septiembre", "TN", 10.23, 10.25, 10.43, 11.0, 80.87, 92.49, 90.86, 86.04], ["2025-09-22", 2025, "septiembre", "TD", 10.1, 10.37, 10.48, 9.93, 53.47, 62.18, 60.07, 55.63], ["2025-09-22", 2025, "septiembre", "TN", 6.42, 9.58, 10.92, 9.75, 42.02, 49.13, 47.27, 43.33], ["2025-09-23", 2025, "septiembre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-23", 2025, "septiembre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-24", 2025, "septiembre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-25", 2025, "septiembre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-26", 2025, "septiembre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-09-27", 2025, "septiembre", "TD", 0.0, 7.5, 7.5, 7.33, 0.0, 58.37, 53.06, 44.22], ["2025-09-27", 2025, "septiembre", "TN", 0.0, 10.32, 10.42, 9.68, 0.0, 68.39, 57.9, 51.05], ["2025-09-28", 2025, "septiembre", "TD", 4.33, 8.58, 10.17, 10.75, 54.35, 72.63, 65.28, 67.94], ["2025-09-28", 2025, "septiembre", "TN", 8.63, 8.98, 10.03, 2.92, 60.22, 71.51, 66.24, 52.19], ["2025-09-29", 2025, "septiembre", "TD", 11.25, 9.67, 11.25, 11.25, 66.67, 82.35, 70.07, 65.3], ["2025-09-29", 2025, "septiembre", "TN", 9.05, 10.38, 4.67, 9.77, 65.81, 83.07, 74.3, 66.36], ["2025-09-30", 2025, "septiembre", "TD", 11.25, 11.5, 12.0, 11.25, 50.4, 53.37, 49.56, 52.14], ["2025-09-30", 2025, "septiembre", "TN", 12.0, 9.32, 4.32, 6.65, 48.75, 50.62, 55.08, 54.37], ["2025-10-01", 2025, "octubre", "TD", 7.58, 2.75, 10.18, 7.35, 41.16, 52.4, 47.68, 46.02], ["2025-10-01", 2025, "octubre", "TN", 0.0, 6.8, 8.15, 8.08, 0.0, 52.42, 50.73, 46.04], ["2025-10-02", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-02", 2025, "octubre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-03", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-03", 2025, "octubre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-04", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-04", 2025, "octubre", "TN", 6.22, 3.33, 1.47, 0.0, 48.25, 45.22, 45.22, 0.0], ["2025-10-05", 2025, "octubre", "TD", 7.3, 6.08, 6.5, 1.0, 54.58, 62.12, 55.18, 79.04], ["2025-10-05", 2025, "octubre", "TN", 6.02, 9.57, 7.17, 12.0, 68.66, 75.26, 63.31, 77.93], ["2025-10-06", 2025, "octubre", "TD", 0.0, 10.33, 10.17, 5.95, 0.0, 86.7, 79.45, 79.89], ["2025-10-06", 2025, "octubre", "TN", 0.0, 10.47, 10.53, 9.2, 0.0, 73.27, 67.06, 76.6], ["2025-10-07", 2025, "octubre", "TD", 6.67, 11.33, 8.0, 10.25, 62.08, 70.24, 64.02, 72.87], ["2025-10-07", 2025, "octubre", "TN", 7.25, 4.08, 4.0, 8.33, 51.4, 67.98, 51.4, 71.3], ["2025-10-08", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-08", 2025, "octubre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-09", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-09", 2025, "octubre", "TN", 11.0, 9.5, 0.0, 11.0, 83.46, 92.48, 0.0, 92.48], ["2025-10-10", 2025, "octubre", "TD", 5.77, 6.13, 6.05, 5.82, 81.64, 99.59, 85.37, 104.34], ["2025-10-10", 2025, "octubre", "TN", 11.08, 5.0, 11.25, 12.0, 97.86, 0.0, 103.96, 112.32], ["2025-10-11", 2025, "octubre", "TD", 10.93, 9.27, 9.55, 9.47, 82.84, 96.27, 70.05, 107.87], ["2025-10-11", 2025, "octubre", "TN", 9.92, 9.92, 10.67, 9.92, 79.4, 94.7, 86.81, 106.13], ["2025-10-12", 2025, "octubre", "TD", 6.27, 7.83, 7.38, 7.88, 87.05, 82.11, 101.27, 96.6], ["2025-10-12", 2025, "octubre", "TN", 5.17, 5.17, 5.17, 4.42, 55.49, 69.37, 58.96, 69.79], ["2025-10-13", 2025, "octubre", "TD", 1.0, 0.88, 0.88, 1.02, 63.71, 72.49, 76.89, 87.87], ["2025-10-13", 2025, "octubre", "TN", 12.0, 11.25, 11.25, 12.0, 66.04, 73.82, 73.38, 75.21], ["2025-10-14", 2025, "octubre", "TD", 8.55, 10.52, 12.0, 10.43, 81.81, 91.75, 86.38, 104.87], ["2025-10-14", 2025, "octubre", "TN", 5.58, 5.58, 3.58, 5.58, 69.04, 83.25, 77.16, 91.38], ["2025-10-15", 2025, "octubre", "TD", 0.63, 0.0, 0.2, 0.5, 49.93, 0.0, 57.07, 59.92], ["2025-10-15", 2025, "octubre", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-16", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-16", 2025, "octubre", "TN", 4.42, 0.0, 3.4, 3.3, 64.0, 0.0, 67.72, 87.91], ["2025-10-17", 2025, "octubre", "TD", 9.27, 0.0, 11.35, 10.47, 71.62, 0.0, 79.97, 92.45], ["2025-10-17", 2025, "octubre", "TN", 11.3, 8.25, 10.33, 10.25, 85.28, 100.02, 92.57, 102.99], ["2025-10-18", 2025, "octubre", "TD", 10.37, 10.45, 10.53, 12.0, 80.64, 96.32, 89.29, 99.07], ["2025-10-18", 2025, "octubre", "TN", 0.25, 0.25, 0.25, 0.08, 0.0, 0.0, 0.0, 0.0], ["2025-10-19", 2025, "octubre", "TD", 1.32, 2.13, 2.52, 2.03, 69.1, 79.56, 76.01, 87.53], ["2025-10-19", 2025, "octubre", "TN", 5.92, 10.67, 9.88, 9.92, 64.57, 80.93, 75.36, 82.78], ["2025-10-20", 2025, "octubre", "TD", 8.62, 9.62, 7.52, 10.3, 67.31, 81.38, 76.32, 81.53], ["2025-10-20", 2025, "octubre", "TN", 10.58, 10.42, 9.0, 10.25, 72.79, 86.44, 83.87, 88.72], ["2025-10-21", 2025, "octubre", "TD", 9.72, 8.37, 9.58, 9.47, 64.03, 76.09, 72.86, 72.57], ["2025-10-21", 2025, "octubre", "TN", 7.23, 10.25, 10.45, 6.22, 65.76, 67.75, 63.76, 69.74], ["2025-10-22", 2025, "octubre", "TD", 0.92, 0.42, 0.67, 0.83, 99.44, 80.1, 93.91, 99.44], ["2025-10-22", 2025, "octubre", "TN", 12.0, 12.0, 12.0, 12.0, 65.46, 72.0, 67.64, 80.73], ["2025-10-23", 2025, "octubre", "TD", 11.25, 10.75, 11.25, 11.08, 62.5, 63.38, 55.22, 76.72], ["2025-10-23", 2025, "octubre", "TN", 6.9, 8.5, 8.5, 7.2, 64.85, 72.68, 69.8, 84.78], ["2025-10-24", 2025, "octubre", "TD", 9.92, 10.33, 10.5, 9.92, 62.57, 77.84, 75.89, 74.96], ["2025-10-24", 2025, "octubre", "TN", 10.65, 10.25, 10.2, 9.3, 74.58, 90.4, 83.62, 98.2], ["2025-10-25", 2025, "octubre", "TD", 10.33, 9.92, 10.67, 9.92, 70.99, 75.05, 73.02, 79.6], ["2025-10-25", 2025, "octubre", "TN", 9.02, 8.77, 9.22, 8.85, 74.85, 86.29, 77.74, 85.11], ["2025-10-26", 2025, "octubre", "TD", 10.67, 6.58, 10.67, 10.0, 83.63, 77.93, 79.83, 89.43], ["2025-10-26", 2025, "octubre", "TN", 9.12, 10.75, 10.02, 10.28, 73.62, 90.85, 76.72, 86.81], ["2025-10-27", 2025, "octubre", "TD", 9.92, 15.0, 9.92, 10.75, 69.52, 45.14, 53.4, 65.77], ["2025-10-27", 2025, "octubre", "TN", 7.83, 9.32, 9.43, 9.1, 65.78, 74.72, 58.19, 83.15], ["2025-10-28", 2025, "octubre", "TD", 10.42, 10.5, 4.5, 9.75, 69.42, 64.94, 38.07, 58.63], ["2025-10-28", 2025, "octubre", "TN", 6.22, 8.72, 6.08, 8.37, 60.29, 54.12, 35.73, 47.47], ["2025-10-29", 2025, "octubre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-10-29", 2025, "octubre", "TN", 10.63, 10.7, 10.73, 10.73, 68.33, 63.78, 43.28, 47.83], ["2025-10-30", 2025, "octubre", "TD", 10.58, 10.13, 10.08, 10.33, 75.81, 72.49, 51.52, 51.36], ["2025-10-30", 2025, "octubre", "TN", 9.22, 9.87, 9.03, 9.1, 67.63, 62.37, 49.19, 44.4], ["2025-10-31", 2025, "octubre", "TD", 5.42, 10.17, 1.75, 1.75, 60.7, 58.5, 69.08, 43.77], ["2025-10-31", 2025, "octubre", "TN", 7.67, 5.67, 10.4, 9.87, 61.39, 70.38, 70.38, 78.91], ["2025-11-01", 2025, "noviembre", "TD", 10.5, 10.33, 10.67, 9.95, 62.92, 75.59, 74.16, 84.94], ["2025-11-01", 2025, "noviembre", "TN", 9.87, 10.45, 9.68, 10.4, 64.3, 79.93, 78.08, 90.32], ["2025-11-02", 2025, "noviembre", "TD", 6.5, 7.92, 7.67, 6.17, 64.53, 78.75, 72.81, 88.04], ["2025-11-02", 2025, "noviembre", "TN", 10.35, 10.42, 10.37, 12.0, 69.81, 83.75, 80.47, 92.9], ["2025-11-03", 2025, "noviembre", "TD", 9.17, 9.38, 9.67, 8.95, 59.44, 71.41, 66.34, 77.3], ["2025-11-03", 2025, "noviembre", "TN", 10.33, 10.38, 10.55, 9.6, 51.59, 64.66, 59.67, 69.38], ["2025-11-04", 2025, "noviembre", "TD", 8.5, 8.25, 9.5, 9.87, 47.08, 62.36, 56.51, 67.45], ["2025-11-04", 2025, "noviembre", "TN", 8.25, 11.25, 11.5, 8.17, 52.66, 48.86, 55.76, 58.85], ["2025-11-05", 2025, "noviembre", "TD", 1.12, 2.33, 2.62, 3.07, 55.49, 60.53, 53.81, 53.81], ["2025-11-05", 2025, "noviembre", "TN", 11.25, 11.25, 12.0, 10.33, 53.54, 56.33, 54.05, 61.78], ["2025-11-06", 2025, "noviembre", "TD", 10.52, 9.92, 10.17, 10.6, 63.87, 67.77, 65.82, 74.16], ["2025-11-06", 2025, "noviembre", "TN", 11.25, 11.25, 12.0, 11.25, 51.69, 59.77, 53.61, 63.53], ["2025-11-07", 2025, "noviembre", "TD", 9.97, 10.5, 10.17, 10.62, 54.81, 69.47, 60.9, 71.8], ["2025-11-07", 2025, "noviembre", "TN", 9.0, 11.25, 10.67, 11.25, 57.26, 67.52, 63.23, 63.16], ["2025-11-08", 2025, "noviembre", "TD", 4.85, 12.0, 10.58, 10.53, 56.8, 68.82, 63.68, 71.37], ["2025-11-08", 2025, "noviembre", "TN", 11.25, 10.33, 11.25, 11.25, 58.29, 68.57, 62.69, 71.15], ["2025-11-09", 2025, "noviembre", "TD", 10.47, 10.37, 10.62, 10.55, 63.38, 76.75, 71.75, 83.15], ["2025-11-09", 2025, "noviembre", "TN", 11.25, 11.25, 11.17, 11.25, 56.3, 65.92, 59.95, 70.27], ["2025-11-10", 2025, "noviembre", "TD", 11.42, 9.87, 10.02, 10.02, 53.51, 57.72, 59.04, 63.42], ["2025-11-10", 2025, "noviembre", "TN", 0.25, 0.25, 0.75, 0.33, 16.65, 17.76, 18.32, 19.98], ["2025-11-11", 2025, "noviembre", "TD", 12.0, 10.55, 12.0, 10.55, 60.82, 70.96, 64.88, 70.62], ["2025-11-11", 2025, "noviembre", "TN", 10.33, 6.2, 10.5, 7.5, 51.7, 63.19, 57.44, 57.44], ["2025-11-12", 2025, "noviembre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-11-12", 2025, "noviembre", "TN", 10.5, 11.43, 11.13, 10.33, 50.87, 63.26, 59.18, 61.22], ["2025-11-13", 2025, "noviembre", "TD", 10.42, 10.18, 10.45, 9.9, 58.78, 69.77, 62.64, 72.08], ["2025-11-13", 2025, "noviembre", "TN", 10.25, 10.25, 10.33, 10.25, 66.67, 78.08, 73.82, 87.07], ["2025-11-14", 2025, "noviembre", "TD", 9.63, 9.07, 9.1, 9.08, 66.65, 78.47, 75.78, 85.31], ["2025-11-14", 2025, "noviembre", "TN", 10.0, 10.25, 11.92, 10.25, 61.44, 73.54, 70.22, 81.94], ["2025-11-15", 2025, "noviembre", "TD", 10.58, 10.12, 9.82, 9.72, 60.05, 73.88, 68.61, 77.15], ["2025-11-15", 2025, "noviembre", "TN", 10.45, 10.25, 10.33, 11.13, 75.79, 85.74, 84.31, 98.08], ["2025-11-16", 2025, "noviembre", "TD", 7.67, 7.32, 7.5, 8.32, 77.79, 94.8, 87.35, 101.11], ["2025-11-16", 2025, "noviembre", "TN", 9.28, 9.83, 11.75, 10.33, 69.4, 81.3, 76.83, 88.3], ["2025-11-17", 2025, "noviembre", "TD", 10.3, 6.5, 10.7, 10.15, 56.28, 65.5, 64.32, 70.98], ["2025-11-17", 2025, "noviembre", "TN", 12.0, 10.42, 10.5, 10.75, 55.4, 70.86, 62.68, 70.69], ["2025-11-18", 2025, "noviembre", "TD", 9.98, 10.17, 10.22, 11.43, 60.92, 72.04, 69.86, 77.64], ["2025-11-18", 2025, "noviembre", "TN", 7.32, 11.67, 9.3, 10.45, 61.82, 74.18, 63.88, 70.06], ["2025-11-19", 2025, "noviembre", "TD", 0.67, 0.5, 0.25, 0.25, 35.4, 44.63, 41.55, 50.79], ["2025-11-19", 2025, "noviembre", "TN", 11.83, 12.0, 10.67, 12.0, 66.28, 79.11, 76.45, 87.66], ["2025-11-20", 2025, "noviembre", "TD", 10.67, 10.3, 10.43, 10.3, 56.47, 70.16, 61.86, 80.85], ["2025-11-20", 2025, "noviembre", "TN", 2.6, 5.07, 4.82, 4.02, 36.98, 40.09, 41.46, 44.82], ["2025-11-21", 2025, "noviembre", "TD", 8.18, 8.77, 9.9, 9.93, 32.2, 37.55, 37.37, 43.53], ["2025-11-21", 2025, "noviembre", "TN", 10.5, 11.88, 10.18, 10.58, 53.73, 58.57, 65.67, 64.36], ["2025-11-22", 2025, "noviembre", "TD", 16.25, 10.5, 11.25, 11.25, 45.6, 64.91, 67.66, 77.18], ["2025-11-22", 2025, "noviembre", "TN", 8.32, 9.35, 9.58, 10.77, 69.0, 76.38, 79.46, 83.64], ["2025-11-23", 2025, "noviembre", "TD", 0.53, 0.25, 0.2, 0.43, 41.64, 45.95, 44.51, 51.69], ["2025-11-23", 2025, "noviembre", "TN", 12.0, 12.0, 12.0, 12.0, 60.33, 68.37, 66.36, 80.44], ["2025-11-24", 2025, "noviembre", "TD", 10.23, 10.35, 10.47, 10.3, 56.59, 70.92, 63.46, 75.01], ["2025-11-24", 2025, "noviembre", "TN", 10.48, 10.55, 10.65, 10.52, 71.15, 76.44, 72.1, 82.13], ["2025-11-25", 2025, "noviembre", "TD", 10.33, 10.0, 10.52, 7.32, 71.92, 83.04, 78.48, 93.62], ["2025-11-25", 2025, "noviembre", "TN", 8.22, 9.62, 4.63, 10.08, 69.21, 85.36, 73.82, 92.28], ["2025-11-26", 2025, "noviembre", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2025-11-26", 2025, "noviembre", "TN", 7.68, 6.25, 7.45, 6.55, 53.42, 66.01, 62.96, 71.75], ["2025-11-27", 2025, "noviembre", "TD", 6.17, 6.17, 6.37, 6.37, 70.13, 84.16, 79.48, 88.83], ["2025-11-27", 2025, "noviembre", "TN", 10.38, 9.2, 9.7, 10.35, 56.38, 69.88, 66.09, 70.88], ["2025-11-28", 2025, "noviembre", "TD", 10.25, 10.3, 12.0, 12.0, 54.01, 64.62, 62.72, 68.26], ["2025-11-28", 2025, "noviembre", "TN", 10.2, 11.3, 9.4, 10.42, 50.62, 61.35, 60.49, 66.41], ["2025-11-29", 2025, "noviembre", "TD", 10.22, 10.25, 10.47, 10.28, 54.01, 69.12, 65.26, 69.8], ["2025-11-29", 2025, "noviembre", "TN", 9.87, 9.03, 9.2, 9.87, 56.88, 67.26, 65.7, 62.82], ["2025-11-30", 2025, "noviembre", "TD", 11.33, 10.17, 10.33, 9.68, 56.39, 65.36, 62.92, 53.31], ["2025-11-30", 2025, "noviembre", "TN", 10.37, 10.42, 11.35, 10.45, 58.94, 66.92, 65.74, 59.87], ["2025-12-01", 2025, "diciembre", "TD", 10.33, 10.3, 10.42, 10.22, 62.68, 68.06, 70.12, 56.56], ["2025-12-01", 2025, "diciembre", "TN", 10.32, 10.38, 10.45, 10.42, 61.79, 69.32, 70.62, 48.55], ["2025-12-02", 2025, "diciembre", "TD", 9.08, 9.52, 9.98, 4.02, 58.66, 60.26, 60.39, 67.67], ["2025-12-02", 2025, "diciembre", "TN", 10.75, 8.17, 5.92, 12.0, 64.12, 59.7, 61.91, 61.91], ["2025-12-03", 2025, "diciembre", "TD", 1.78, 2.62, 3.27, 3.33, 59.92, 56.17, 59.92, 73.03], ["2025-12-03", 2025, "diciembre", "TN", 12.0, 11.25, 11.25, 11.25, 55.14, 59.55, 58.49, 67.59], ["2025-12-04", 2025, "diciembre", "TD", 9.32, 10.5, 9.33, 9.3, 55.12, 62.31, 62.38, 69.23], ["2025-12-04", 2025, "diciembre", "TN", 11.25, 11.25, 11.25, 11.25, 55.3, 54.97, 56.96, 65.75], ["2025-12-05", 2025, "diciembre", "TD", 10.35, 10.48, 10.58, 10.52, 63.88, 64.53, 65.56, 73.26], ["2025-12-05", 2025, "diciembre", "TN", 11.25, 11.25, 11.25, 11.25, 54.66, 61.06, 60.57, 68.07], ["2025-12-06", 2025, "diciembre", "TD", 9.62, 10.68, 9.5, 9.8, 63.22, 64.26, 62.55, 72.89], ["2025-12-06", 2025, "diciembre", "TN", 11.25, 10.67, 11.25, 11.25, 59.9, 58.39, 62.64, 66.18], ["2025-12-07", 2025, "diciembre", "TD", 10.58, 10.78, 10.62, 10.23, 60.94, 67.83, 59.35, 73.24], ["2025-12-07", 2025, "diciembre", "TN", 11.25, 10.67, 11.17, 11.25, 59.17, 56.74, 66.33, 61.73], ["2025-12-08", 2025, "diciembre", "TD", 10.5, 10.58, 10.48, 10.55, 62.21, 68.43, 68.09, 73.73], ["2025-12-08", 2025, "diciembre", "TN", 11.25, 10.67, 11.75, 11.25, 60.89, 56.96, 60.89, 70.92], ["2025-12-09", 2025, "diciembre", "TD", 6.28, 6.32, 6.97, 6.35, 113.79, 94.83, 97.54, 89.21], ["2025-12-09", 2025, "diciembre", "TN", 6.33, 0.0, 6.3, 8.0, 57.78, 0.0, 67.48, 51.36], ["2025-12-10", 2025, "diciembre", "TD", 9.43, 7.78, 10.23, 3.77, 59.14, 64.57, 60.51, 47.09], ["2025-12-10", 2025, "diciembre", "TN", 10.25, 8.08, 8.92, 12.0, 63.36, 67.89, 67.89, 63.36], ["2025-12-11", 2025, "diciembre", "TD", 0.3, 0.0, 0.0, 1.0, 90.0, 0.0, 0.0, 80.0], ["2025-12-11", 2025, "diciembre", "TN", 3.38, 3.22, 2.22, 2.72, 48.38, 49.1, 50.64, 32.81], ["2025-12-12", 2025, "diciembre", "TD", 12.0, 12.0, 10.82, 10.05, 60.33, 69.27, 67.03, 51.92], ["2025-12-12", 2025, "diciembre", "TN", 10.33, 10.33, 11.83, 10.92, 68.94, 76.75, 75.2, 53.37], ["2025-12-13", 2025, "diciembre", "TD", 10.42, 10.45, 10.67, 11.28, 74.21, 79.92, 77.84, 63.15], ["2025-12-13", 2025, "diciembre", "TN", 8.3, 8.73, 8.67, 10.17, 64.72, 72.26, 68.04, 51.05], ["2025-12-14", 2025, "diciembre", "TD", 10.05, 9.4, 9.62, 3.85, 79.06, 88.45, 83.5, 58.17], ["2025-12-14", 2025, "diciembre", "TN", 9.08, 9.67, 10.08, 11.22, 59.65, 72.4, 65.24, 73.5], ["2025-12-15", 2025, "diciembre", "TD", 9.3, 9.82, 10.48, 8.6, 78.09, 88.25, 84.58, 99.16], ["2025-12-15", 2025, "diciembre", "TN", 8.5, 8.92, 10.42, 12.0, 69.67, 79.5, 73.71, 83.76], ["2025-12-16", 2025, "diciembre", "TD", 10.3, 10.4, 10.43, 10.4, 65.83, 73.18, 70.86, 83.89], ["2025-12-16", 2025, "diciembre", "TN", 6.25, 11.73, 7.93, 10.53, 61.67, 74.0, 69.89, 82.87], ["2025-12-17", 2025, "diciembre", "TD", 3.67, 3.42, 3.75, 3.83, 69.85, 74.84, 79.83, 92.3], ["2025-12-17", 2025, "diciembre", "TN", 10.58, 11.83, 10.58, 10.57, 65.02, 69.36, 69.36, 79.5], ["2025-12-18", 2025, "diciembre", "TD", 9.33, 8.08, 8.67, 9.5, 55.19, 65.56, 59.71, 72.69], ["2025-12-18", 2025, "diciembre", "TN", 10.8, 10.42, 12.0, 10.48, 71.94, 78.62, 71.94, 88.7], ["2025-12-18", 2025, "diciembre", "TN", 10.8, 10.42, 12.0, 10.48, 71.94, 78.62, 71.94, 88.7], ["2025-12-19", 2025, "diciembre", "TD", 10.5, 10.5, 9.83, 10.08, 58.59, 64.86, 75.78, 73.16], ["2025-12-19", 2025, "diciembre", "TN", 10.72, 8.73, 6.17, 10.25, 71.4, 83.32, 74.84, 97.53], ["2025-12-20", 2025, "diciembre", "TD", 11.25, 11.25, 11.25, 10.58, 58.81, 74.81, 68.67, 84.4], ["2025-12-20", 2025, "diciembre", "TN", 10.48, 12.0, 10.43, 10.58, 66.86, 74.84, 69.04, 80.1], ["2025-12-21", 2025, "diciembre", "TD", 11.25, 11.25, 12.0, 11.17, 56.75, 69.82, 70.93, 77.19], ["2025-12-21", 2025, "diciembre", "TN", 12.0, 10.48, 10.2, 10.58, 69.49, 75.46, 73.97, 75.36], ["2025-12-22", 2025, "diciembre", "TD", 10.5, 11.25, 11.25, 11.42, 66.09, 65.86, 63.7, 66.09], ["2025-12-22", 2025, "diciembre", "TN", 10.37, 12.0, 10.55, 12.0, 66.58, 70.87, 65.28, 68.72], ["2025-12-23", 2025, "diciembre", "TD", 11.0, 10.08, 10.83, 10.83, 52.56, 80.14, 59.16, 48.92], ["2025-12-23", 2025, "diciembre", "TN", 4.88, 11.7, 6.92, 11.02, 69.92, 76.69, 76.69, 63.16], ["2025-12-24", 2025, "diciembre", "TD", 0.75, 0.88, 1.5, 1.12, 40.5, 51.0, 42.0, 43.5], ["2025-12-24", 2025, "diciembre", "TN", 10.28, 12.0, 12.0, 12.0, 67.2, 73.87, 69.25, 80.79], ["2025-12-25", 2025, "diciembre", "TD", 9.92, 8.18, 9.75, 6.92, 59.4, 62.58, 62.19, 77.56], ["2025-12-25", 2025, "diciembre", "TN", 9.6, 9.63, 9.07, 10.3, 64.68, 70.11, 68.16, 86.77], ["2025-12-26", 2025, "diciembre", "TD", 9.67, 9.88, 8.42, 8.42, 57.04, 62.38, 57.9, 66.5], ["2025-12-26", 2025, "diciembre", "TN", 10.07, 10.4, 11.3, 10.9, 57.36, 65.47, 60.99, 71.33], ["2025-12-27", 2025, "diciembre", "TD", 10.25, 10.25, 10.42, 10.33, 68.12, 75.67, 74.62, 86.02], ["2025-12-27", 2025, "diciembre", "TN", 10.13, 10.28, 9.15, 10.42, 68.02, 78.34, 71.81, 85.07], ["2025-12-28", 2025, "diciembre", "TN", 5.0, 3.73, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0], ["2025-12-28", 2025, "diciembre", "TD", 10.17, 11.08, 10.2, 10.38, 58.9, 69.99, 65.51, 74.66], ["2025-12-29", 2025, "diciembre", "TD", 9.57, 10.27, 9.78, 9.67, 0.0, 0.0, 0.0, 0.0], ["2025-12-29", 2025, "diciembre", "TN", 9.37, 9.53, 10.27, 9.42, 55.92, 64.75, 59.01, 74.56], ["2025-12-30", 2025, "diciembre", "TD", 2.0, 2.3, 2.58, 2.58, 63.02, 69.77, 63.02, 76.52], ["2025-12-30", 2025, "diciembre", "TN", 11.25, 11.25, 11.25, 11.25, 61.6, 76.85, 72.23, 83.27], ["2025-12-31", 2025, "diciembre", "TD", 10.3, 10.33, 9.67, 11.75, 69.06, 69.78, 68.5, 88.38], ["2025-12-31", 2025, "diciembre", "TN", 11.17, 11.25, 11.25, 10.67, 60.36, 69.4, 67.74, 83.55], ["2026-01-01", 2026, "enero", "TD", 10.45, 10.37, 12.0, 10.37, 66.55, 68.44, 66.55, 76.45], ["2026-01-01", 2026, "enero", "TN", 11.25, 11.25, 10.67, 11.25, 48.64, 54.83, 60.32, 59.78], ["2026-01-02", 2026, "enero", "TD", 10.0, 11.45, 10.5, 10.15, 55.56, 60.63, 60.63, 63.7], ["2026-01-02", 2026, "enero", "TN", 11.25, 10.67, 11.25, 11.25, 34.0, 38.08, 36.68, 43.88], ["2026-01-03", 2026, "enero", "TD", 11.9, 10.55, 10.6, 10.43, 57.41, 63.79, 56.54, 63.68], ["2026-01-03", 2026, "enero", "TN", 10.67, 11.17, 11.25, 11.25, 53.59, 52.4, 49.86, 40.83], ["2026-01-04", 2026, "enero", "TD", 8.8, 8.97, 8.92, 9.43, 58.22, 61.98, 56.0, 53.91], ["2026-01-04", 2026, "enero", "TN", 11.25, 11.25, 11.25, 7.5, 46.33, 53.19, 48.38, 51.88], ["2026-01-05", 2026, "enero", "TD", 10.35, 10.38, 12.0, 10.42, 55.91, 62.48, 54.68, 61.96], ["2026-01-05", 2026, "enero", "TN", 11.25, 11.25, 10.5, 11.25, 50.91, 53.72, 49.72, 44.43], ["2026-01-06", 2026, "enero", "TD", 7.62, 9.07, 7.75, 7.83, 48.08, 53.51, 53.47, 53.91], ["2026-01-06", 2026, "enero", "TN", 9.12, 1.78, 3.2, 11.62, 52.27, 60.32, 58.3, 58.3], ["2026-01-07", 2026, "enero", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-01-07", 2026, "enero", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-01-08", 2026, "enero", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-01-08", 2026, "enero", "TN", 10.08, 7.63, 9.83, 8.3, 45.69, 49.47, 54.39, 69.62], ["2026-01-09", 2026, "enero", "TD", 10.35, 10.35, 9.35, 10.22, 58.42, 63.55, 64.7, 74.64], ["2026-01-09", 2026, "enero", "TN", 10.18, 11.83, 10.2, 10.32, 61.05, 72.25, 69.35, 78.6], ["2026-01-10", 2026, "enero", "TD", 9.72, 9.18, 10.47, 10.42, 63.03, 73.07, 69.2, 77.79], ["2026-01-10", 2026, "enero", "TN", 9.33, 9.88, 8.82, 9.83, 62.87, 73.61, 70.4, 80.45], ["2026-01-11", 2026, "enero", "TD", 10.23, 10.5, 10.47, 10.77, 66.61, 77.14, 71.95, 86.78], ["2026-01-11", 2026, "enero", "TN", 10.22, 10.12, 12.0, 10.25, 65.56, 76.47, 72.4, 86.81], ["2026-01-12", 2026, "enero", "TD", 10.27, 9.0, 10.38, 9.22, 64.54, 74.6, 71.6, 87.95], ["2026-01-12", 2026, "enero", "TN", 9.83, 10.32, 10.33, 10.3, 65.66, 76.96, 73.61, 88.62], ["2026-01-13", 2026, "enero", "TD", 9.82, 11.17, 9.88, 10.03, 61.73, 73.01, 68.8, 82.6], ["2026-01-13", 2026, "enero", "TN", 10.58, 10.65, 10.9, 11.97, 66.14, 80.17, 78.16, 86.18], ["2026-01-14", 2026, "enero", "TD", 3.0, 2.75, 2.83, 2.83, 81.41, 78.7, 86.84, 75.99], ["2026-01-14", 2026, "enero", "TN", 10.57, 10.58, 12.0, 11.9, 66.15, 68.3, 63.07, 81.62], ["2026-01-15", 2026, "enero", "TD", 13.25, 11.33, 11.17, 8.5, 66.85, 81.7, 72.06, 79.85], ["2026-01-15", 2026, "enero", "TN", 12.0, 12.0, 10.6, 10.6, 61.08, 72.53, 67.58, 74.09], ["2026-01-16", 2026, "enero", "TD", 10.5, 10.33, 11.25, 11.25, 64.16, 60.02, 64.16, 65.72], ["2026-01-16", 2026, "enero", "TN", 8.75, 0.0, 12.0, 9.37, 61.22, 0.0, 65.37, 69.59], ["2026-01-17", 2026, "enero", "TD", 11.17, 0.0, 11.25, 10.25, 55.53, 0.0, 61.31, 60.9], ["2026-01-17", 2026, "enero", "TN", 9.57, 0.0, 9.53, 9.4, 56.75, 0.0, 62.4, 66.72], ["2026-01-18", 2026, "enero", "TD", 11.25, 0.0, 11.17, 8.42, 59.67, 0.0, 62.28, 68.11], ["2026-01-18", 2026, "enero", "TN", 11.93, 4.23, 10.58, 10.62, 59.67, 63.93, 63.93, 72.22], ["2026-01-19", 2026, "enero", "TD", 7.08, 8.58, 8.25, 6.0, 56.82, 58.78, 54.09, 66.62], ["2026-01-19", 2026, "enero", "TN", 9.22, 9.58, 9.58, 11.07, 53.19, 59.4, 59.42, 73.02], ["2026-01-20", 2026, "enero", "TD", 10.3, 12.17, 12.0, 10.58, 45.07, 49.89, 49.2, 58.04], ["2026-01-20", 2026, "enero", "TN", 4.72, 9.2, 4.2, 8.3, 37.18, 45.22, 41.47, 51.98], ["2026-01-21", 2026, "enero", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-01-21", 2026, "enero", "TN", 10.08, 11.65, 9.97, 11.85, 62.9, 69.89, 65.23, 86.2], ["2026-01-22", 2026, "enero", "TD", 1.73, 6.0, 6.73, 4.12, 52.1, 58.35, 56.27, 70.86], ["2026-01-22", 2026, "enero", "TN", 0.33, 0.32, 0.28, 0.23, 37.61, 40.04, 36.4, 44.89], ["2026-01-23", 2026, "enero", "TD", 12.0, 9.18, 12.0, 11.25, 60.98, 62.95, 59.01, 76.72], ["2026-01-23", 2026, "enero", "TN", 10.02, 0.0, 10.28, 11.05, 61.69, 0.0, 67.9, 85.87], ["2026-01-24", 2026, "enero", "TD", 10.38, 0.0, 10.47, 9.5, 55.67, 0.0, 61.45, 78.4], ["2026-01-24", 2026, "enero", "TN", 10.35, 0.0, 10.52, 10.52, 50.72, 0.0, 58.48, 71.32], ["2026-01-25", 2026, "enero", "TD", 12.0, 0.0, 10.5, 10.3, 51.65, 0.0, 60.46, 71.01], ["2026-01-25", 2026, "enero", "TN", 10.38, 0.0, 11.6, 10.73, 50.3, 0.0, 58.04, 69.64], ["2026-01-26", 2026, "enero", "TD", 10.33, 0.0, 10.5, 10.95, 49.17, 0.0, 53.32, 59.09], ["2026-01-26", 2026, "enero", "TN", 10.17, 0.0, 10.22, 11.07, 33.53, 0.0, 37.56, 43.32], ["2026-01-27", 2026, "enero", "TD", 10.23, 0.0, 10.32, 10.33, 37.63, 0.0, 42.74, 44.51], ["2026-01-27", 2026, "enero", "TN", 11.5, 0.0, 12.0, 6.5, 29.49, 0.0, 31.67, 31.67], ["2026-01-28", 2026, "enero", "TD", 0.43, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-01-28", 2026, "enero", "TN", 11.75, 0.0, 12.0, 11.5, 50.39, 0.0, 0.0, 54.42], ["2026-01-29", 2026, "enero", "TD", 4.77, 0.0, 6.73, 5.08, 31.02, 0.0, 29.83, 42.95], ["2026-01-29", 2026, "enero", "TN", 1.58, 0.0, 1.58, 1.58, 11.7, 0.0, 17.85, 19.08], ["2026-01-30", 2026, "enero", "TD", 10.83, 0.0, 11.37, 10.52, 27.11, 0.0, 35.15, 38.01], ["2026-01-30", 2026, "enero", "TN", 11.5, 0.0, 5.0, 11.25, 51.12, 0.0, 0.0, 59.48], ["2026-01-31", 2026, "enero", "TD", 11.05, 0.0, 10.47, 10.52, 33.0, 0.0, 40.44, 42.8], ["2026-01-31", 2026, "enero", "TN", 11.25, 3.0, 11.25, 11.5, 30.68, 37.57, 38.85, 46.96], ["2026-02-01", 2026, "febrero", "TD", 10.58, 9.72, 10.55, 10.92, 45.4, 62.86, 52.63, 55.47], ["2026-02-01", 2026, "febrero", "TN", 11.25, 11.25, 12.0, 11.25, 39.47, 49.94, 43.28, 52.6], ["2026-02-02", 2026, "febrero", "TD", 10.48, 11.88, 10.65, 10.52, 51.57, 58.73, 55.4, 64.89], ["2026-02-02", 2026, "febrero", "TN", 10.58, 11.33, 11.25, 10.58, 46.16, 54.13, 48.98, 64.25], ["2026-02-03", 2026, "febrero", "TD", 10.57, 3.67, 10.55, 10.53, 49.69, 56.31, 52.23, 62.14], ["2026-02-03", 2026, "febrero", "TN", 10.62, 10.25, 9.25, 10.5, 50.09, 59.52, 56.1, 62.11], ["2026-02-04", 2026, "febrero", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-02-04", 2026, "febrero", "TN", 10.38, 0.0, 9.72, 10.55, 46.3, 0.0, 54.35, 60.39], ["2026-02-05", 2026, "febrero", "TD", 3.88, 0.0, 2.53, 0.0, 46.91, 0.0, 57.57, 0.0], ["2026-02-05", 2026, "febrero", "TN", 2.58, 0.0, 2.4, 2.33, 45.43, 0.0, 45.36, 18.76], ["2026-02-06", 2026, "febrero", "TD", 12.0, 0.0, 10.47, 10.33, 45.02, 0.0, 50.89, 61.95], ["2026-02-06", 2026, "febrero", "TN", 10.25, 2.5, 10.95, 8.08, 61.62, 91.44, 75.31, 94.91], ["2026-02-07", 2026, "febrero", "TD", 5.22, 4.87, 6.77, 4.65, 45.38, 56.15, 54.22, 58.09], ["2026-02-07", 2026, "febrero", "TN", 6.22, 8.0, 7.5, 8.08, 30.95, 36.48, 36.48, 34.05], ["2026-02-08", 2026, "febrero", "TD", 10.8, 9.17, 10.4, 2.2, 41.61, 56.09, 48.28, 51.95], ["2026-02-08", 2026, "febrero", "TN", 10.05, 10.33, 10.58, 10.33, 46.59, 64.27, 59.95, 63.01], ["2026-02-09", 2026, "febrero", "TD", 10.38, 10.47, 9.83, 9.23, 52.56, 66.46, 60.44, 55.16], ["2026-02-09", 2026, "febrero", "TN", 8.57, 8.5, 10.08, 2.35, 34.33, 48.9, 48.9, 51.99], ["2026-02-10", 2026, "febrero", "TD", 9.8, 0.0, 10.53, 12.0, 56.72, 0.0, 66.66, 75.0], ["2026-02-10", 2026, "febrero", "TN", 6.48, 0.0, 8.82, 10.6, 52.21, 0.0, 63.81, 72.54], ["2026-02-11", 2026, "febrero", "TD", 1.0, 0.0, 0.42, 1.08, 0.0, 0.0, 0.0, 0.0], ["2026-02-11", 2026, "febrero", "TN", 10.53, 0.0, 12.0, 10.57, 43.06, 0.0, 51.27, 65.88], ["2026-02-12", 2026, "febrero", "TD", 12.0, 0.0, 11.25, 11.25, 47.7, 0.0, 54.41, 66.0], ["2026-02-12", 2026, "febrero", "TN", 10.42, 4.95, 10.4, 12.0, 49.6, 59.14, 57.5, 73.47], ["2026-02-13", 2026, "febrero", "TD", 11.25, 9.83, 11.25, 10.5, 57.98, 71.92, 62.45, 75.7], ["2026-02-13", 2026, "febrero", "TN", 10.47, 9.63, 10.58, 10.62, 51.44, 63.4, 53.06, 71.04], ["2026-02-14", 2026, "febrero", "TD", 11.25, 6.08, 11.25, 11.25, 54.89, 71.77, 69.77, 82.49], ["2026-02-14", 2026, "febrero", "TN", 10.57, 10.52, 12.0, 10.52, 64.55, 81.39, 77.9, 89.02], ["2026-02-15", 2026, "febrero", "TD", 12.0, 11.27, 10.12, 11.25, 58.11, 79.75, 66.72, 80.64], ["2026-02-15", 2026, "febrero", "TN", 10.58, 11.83, 10.52, 10.53, 70.06, 89.68, 15.88, 96.48], ["2026-02-16", 2026, "febrero", "TD", 10.88, 10.33, 11.25, 11.23, 51.13, 78.96, 62.68, 72.59], ["2026-02-16", 2026, "febrero", "TN", 10.6, 8.45, 12.0, 8.27, 52.34, 54.81, 50.36, 62.51], ["2026-02-17", 2026, "febrero", "TD", 1.88, 0.0, 1.72, 1.6, 49.74, 0.0, 53.17, 60.03], ["2026-02-17", 2026, "febrero", "TN", 10.48, 0.23, 12.0, 11.92, 64.0, 70.84, 68.31, 65.78], ["2026-02-18", 2026, "febrero", "TD", 9.92, 12.0, 10.28, 3.08, 57.31, 70.53, 62.98, 79.35], ["2026-02-18", 2026, "febrero", "TN", 12.0, 10.48, 10.4, 10.37, 59.15, 70.98, 78.18, 70.23], ["2026-02-19", 2026, "febrero", "TD", 7.38, 7.37, 7.58, 9.0, 47.94, 58.16, 53.22, 67.11], ["2026-02-19", 2026, "febrero", "TN", 6.85, 6.43, 8.52, 10.0, 27.5, 33.11, 29.87, 38.12], ["2026-02-20", 2026, "febrero", "TD", 7.67, 6.6, 7.67, 6.0, 41.67, 55.73, 46.61, 65.23], ["2026-02-20", 2026, "febrero", "TN", 5.93, 1.93, 5.55, 7.15, 62.84, 79.6, 72.0, 91.84], ["2026-02-21", 2026, "febrero", "TD", 7.2, 9.0, 9.0, 7.03, 70.61, 79.4, 70.33, 90.57], ["2026-02-21", 2026, "febrero", "TN", 7.62, 7.5, 7.13, 6.95, 64.75, 83.93, 74.34, 86.33], ["2026-02-22", 2026, "febrero", "TD", 8.0, 0.0, 0.0, 0.0, 56.36, 0.0, 0.0, 0.0], ["2026-02-22", 2026, "febrero", "TN", 9.55, 12.0, 10.43, 10.25, 58.8, 74.63, 53.53, 78.67], ["2026-02-23", 2026, "febrero", "TD", 12.0, 10.33, 12.0, 10.37, 57.56, 70.06, 68.63, 75.03], ["2026-02-23", 2026, "febrero", "TN", 8.72, 8.95, 9.17, 8.95, 44.7, 70.93, 53.19, 73.07], ["2026-02-24", 2026, "febrero", "TD", 10.05, 10.15, 10.25, 11.25, 50.6, 59.86, 55.23, 69.58], ["2026-02-24", 2026, "febrero", "TN", 3.83, 6.0, 9.0, 10.17, 51.85, 67.7, 59.27, 65.08], ["2026-02-25", 2026, "febrero", "TD", 2.22, 0.67, 0.0, 1.58, 50.31, 76.47, 0.0, 70.43], ["2026-02-25", 2026, "febrero", "TN", 11.67, 12.0, 12.0, 10.27, 60.83, 84.79, 70.66, 94.58], ["2026-02-26", 2026, "febrero", "TD", 10.25, 10.53, 10.58, 1.67, 51.64, 66.14, 59.59, 79.45], ["2026-02-26", 2026, "febrero", "TN", 10.43, 9.68, 12.0, 22.17, 25.15, 35.19, 32.17, 39.65], ["2026-02-27", 2026, "febrero", "TD", 10.38, 12.0, 10.33, 10.45, 47.98, 55.36, 46.14, 59.78], ["2026-02-27", 2026, "febrero", "TN", 12.0, 10.4, 10.42, 10.05, 37.08, 64.89, 54.82, 63.79], ["2026-02-28", 2026, "febrero", "TD", 10.32, 10.4, 10.47, 11.83, 46.06, 58.62, 50.32, 60.72], ["2026-02-28", 2026, "febrero", "TN", 9.83, 10.47, 10.63, 10.5, 63.58, 62.52, 54.24, 74.73], ["2026-03-01", 2026, "marzo", "TD", 8.95, 10.5, 10.58, 10.42, 48.13, 58.3, 50.38, 64.78], ["2026-03-01", 2026, "marzo", "TN", 10.62, 10.35, 11.47, 10.5, 35.83, 48.54, 55.06, 49.32], ["2026-03-02", 2026, "marzo", "TD", 7.05, 10.53, 10.67, 10.57, 47.28, 58.19, 60.27, 67.75], ["2026-03-02", 2026, "marzo", "TN", 11.67, 12.0, 10.2, 10.38, 42.09, 59.81, 55.87, 72.36], ["2026-03-03", 2026, "marzo", "TD", 10.67, 10.18, 9.02, 10.42, 43.33, 52.12, 50.48, 56.73], ["2026-03-03", 2026, "marzo", "TN", 7.5, 6.0, 6.0, 12.0, 39.67, 49.75, 44.01, 55.49], ["2026-03-04", 2026, "marzo", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-03-04", 2026, "marzo", "TN", 7.22, 7.0, 6.62, 6.6, 48.66, 59.99, 57.77, 71.92], ["2026-03-05", 2026, "marzo", "TD", 4.9, 4.92, 4.95, 5.02, 45.68, 73.63, 57.67, 85.64], ["2026-03-05", 2026, "marzo", "TN", 12.0, 10.5, 12.0, 12.0, 53.54, 68.53, 62.1, 79.23], ["2026-03-06", 2026, "marzo", "TD", 10.22, 12.0, 10.48, 10.25, 52.24, 72.33, 60.99, 80.87], ["2026-03-06", 2026, "marzo", "TN", 7.58, 10.0, 7.4, 7.62, 56.45, 71.29, 61.05, 79.86], ["2026-03-07", 2026, "marzo", "TD", 9.98, 10.43, 11.62, 10.03, 52.22, 63.64, 59.97, 75.46], ["2026-03-07", 2026, "marzo", "TN", 7.15, 7.6, 7.47, 9.38, 40.21, 52.91, 45.54, 62.28], ["2026-03-08", 2026, "marzo", "TD", 9.7, 8.78, 8.3, 8.27, 33.67, 46.25, 38.73, 55.97], ["2026-03-08", 2026, "marzo", "TN", 7.67, 9.5, 9.5, 7.83, 36.71, 47.58, 39.65, 56.02], ["2026-03-09", 2026, "marzo", "TD", 8.03, 8.6, 6.85, 8.6, 32.32, 39.84, 33.79, 45.84], ["2026-03-09", 2026, "marzo", "TN", 6.5, 7.75, 8.08, 7.75, 31.08, 41.83, 35.43, 48.7], ["2026-03-10", 2026, "marzo", "TD", 0.25, 0.32, 0.3, 0.22, 23.67, 41.11, 31.15, 44.85], ["2026-03-10", 2026, "marzo", "TN", 12.0, 10.33, 12.0, 12.0, 39.26, 47.15, 47.12, 59.68], ["2026-03-11", 2026, "marzo", "TD", 7.67, 12.0, 11.25, 11.25, 54.32, 71.7, 58.2, 76.04], ["2026-03-11", 2026, "marzo", "TN", 10.02, 10.42, 10.43, 11.33, 56.1, 69.81, 61.08, 80.17], ["2026-03-12", 2026, "marzo", "TD", 10.75, 10.67, 11.42, 10.67, 32.84, 50.36, 45.53, 54.18], ["2026-03-12", 2026, "marzo", "TN", 7.82, 7.48, 6.48, 6.28, 35.62, 48.97, 41.55, 53.43], ["2026-03-13", 2026, "marzo", "TD", 5.17, 6.67, 6.67, 6.67, 57.89, 65.51, 59.37, 73.7], ["2026-03-13", 2026, "marzo", "TN", 12.0, 10.57, 10.45, 10.45, 56.58, 74.68, 65.27, 91.85], ["2026-03-14", 2026, "marzo", "TD", 11.25, 12.0, 11.25, 11.25, 49.26, 61.3, 57.46, 68.96], ["2026-03-14", 2026, "marzo", "TN", 10.55, 8.77, 11.68, 12.0, 52.6, 64.11, 59.41, 80.57], ["2026-03-15", 2026, "marzo", "TD", 12.0, 8.0, 11.25, 10.25, 40.4, 49.89, 37.8, 43.39], ["2026-03-15", 2026, "marzo", "TN", 10.43, 7.9, 10.95, 5.77, 34.66, 46.92, 54.47, 40.1], ["2026-03-16", 2026, "marzo", "TD", 9.67, 9.0, 10.92, 10.92, 56.17, 60.59, 56.49, 76.94], ["2026-03-16", 2026, "marzo", "TN", 8.75, 10.83, 22.58, 22.55, 28.25, 32.74, 33.02, 46.63], ["2026-03-17", 2026, "marzo", "TD", 10.75, 10.75, 10.0, 10.0, 45.71, 62.15, 58.19, 70.77], ["2026-03-17", 2026, "marzo", "TN", 10.5, 10.33, 10.53, 10.45, 56.04, 72.44, 63.59, 81.73], ["2026-03-18", 2026, "marzo", "TD", 9.5, 8.53, 9.62, 9.5, 60.88, 72.73, 67.46, 86.13], ["2026-03-18", 2026, "marzo", "TN", 7.6, 10.75, 11.5, 10.32, 52.7, 67.57, 60.58, 76.9], ["2026-03-19", 2026, "marzo", "TD", 1.63, 10.25, 10.43, 10.15, 55.67, 62.09, 51.39, 71.38], ["2026-03-19", 2026, "marzo", "TN", 10.25, 5.35, 11.03, 6.07, 48.6, 59.64, 55.23, 68.48], ["2026-03-20", 2026, "marzo", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-03-20", 2026, "marzo", "TN", 0.0, 0.0, 3.4, 10.3, 0.0, 0.0, 53.5, 73.31], ["2026-03-21", 2026, "marzo", "TD", 9.22, 9.5, 6.82, 11.5, 51.0, 64.74, 54.46, 72.58], ["2026-03-21", 2026, "marzo", "TN", 10.3, 10.43, 7.1, 10.62, 56.84, 68.53, 59.77, 84.12], ["2026-03-22", 2026, "marzo", "TD", 10.2, 10.27, 10.42, 10.33, 49.87, 66.39, 55.42, 81.13], ["2026-03-22", 2026, "marzo", "TN", 10.28, 10.4, 10.63, 10.45, 45.61, 63.24, 53.66, 81.02], ["2026-03-23", 2026, "marzo", "TD", 10.13, 10.2, 10.42, 10.33, 49.82, 69.04, 57.44, 88.61], ["2026-03-23", 2026, "marzo", "TN", 10.17, 10.45, 8.8, 10.22, 45.8, 64.91, 52.75, 80.45], ["2026-03-24", 2026, "marzo", "TD", 2.87, 3.63, 3.0, 4.38, 11.37, 16.75, 13.93, 20.94], ["2026-03-24", 2026, "marzo", "TN", 11.25, 12.0, 12.0, 12.0, 43.75, 54.75, 44.97, 72.34], ["2026-03-25", 2026, "marzo", "TD", 12.0, 10.67, 10.55, 10.52, 49.71, 70.05, 58.06, 85.18], ["2026-03-25", 2026, "marzo", "TN", 22.67, 11.0, 11.25, 11.25, 36.58, 51.96, 44.36, 66.51], ["2026-03-26", 2026, "marzo", "TD", 10.43, 10.37, 10.6, 12.0, 42.67, 60.0, 53.74, 76.76], ["2026-03-26", 2026, "marzo", "TN", 11.25, 11.25, 11.25, 12.0, 25.37, 36.56, 33.46, 50.9], ["2026-03-27", 2026, "marzo", "TD", 10.42, 8.73, 12.0, 10.52, 38.84, 63.71, 54.38, 77.93], ["2026-03-27", 2026, "marzo", "TN", 12.0, 10.58, 11.25, 11.25, 33.84, 47.3, 34.89, 65.77], ["2026-03-28", 2026, "marzo", "TD", 10.07, 12.0, 10.55, 10.33, 39.73, 54.18, 43.91, 65.87], ["2026-03-28", 2026, "marzo", "TN", 11.25, 10.67, 11.25, 11.25, 32.5, 47.22, 44.73, 67.6], ["2026-03-29", 2026, "marzo", "TD", 10.5, 10.43, 10.63, 12.0, 27.13, 37.98, 33.26, 62.35], ["2026-03-29", 2026, "marzo", "TN", 11.25, 11.25, 11.25, 10.67, 19.28, 30.49, 29.48, 61.64], ["2026-03-30", 2026, "marzo", "TD", 9.05, 9.77, 10.78, 10.57, 27.32, 42.4, 33.94, 56.56], ["2026-03-30", 2026, "marzo", "TN", 11.25, 11.25, 10.08, 11.25, 31.16, 43.86, 41.45, 61.43], ["2026-03-31", 2026, "marzo", "TD", 10.48, 11.0, 12.0, 9.12, 35.07, 44.06, 38.97, 58.46], ["2026-03-31", 2026, "marzo", "TN", 6.33, 9.25, 8.0, 10.5, 47.97, 74.65, 60.76, 102.34], ["2026-04-01", 2026, "abril", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-04-01", 2026, "abril", "TN", 9.62, 9.7, 7.55, 9.87, 31.45, 47.02, 34.83, 54.07], ["2026-04-02", 2026, "abril", "TD", 9.25, 9.35, 9.38, 9.45, 35.85, 53.73, 40.81, 60.43], ["2026-04-02", 2026, "abril", "TN", 9.13, 8.83, 9.08, 10.67, 27.09, 38.73, 31.93, 51.22], ["2026-04-03", 2026, "abril", "TD", 7.43, 8.88, 8.02, 9.08, 22.63, 32.22, 26.41, 43.25], ["2026-04-03", 2026, "abril", "TN", 10.33, 10.25, 10.37, 10.33, 20.43, 28.95, 25.02, 42.84], ["2026-04-04", 2026, "abril", "TD", 10.15, 9.4, 10.47, 10.48, 22.8, 30.36, 27.63, 47.99], ["2026-04-04", 2026, "abril", "TN", 9.33, 10.5, 11.08, 10.5, 22.98, 31.48, 27.03, 46.99], ["2026-04-05", 2026, "abril", "TD", 3.57, 7.65, 8.38, 8.1, 27.3, 29.35, 25.8, 46.02], ["2026-04-05", 2026, "abril", "TN", 11.25, 9.17, 10.42, 10.17, 38.53, 35.32, 29.76, 55.75], ["2026-04-06", 2026, "abril", "TD", 10.17, 6.8, 10.43, 10.23, 28.52, 40.99, 31.41, 57.03], ["2026-04-06", 2026, "abril", "TN", 9.0, 8.77, 8.67, 9.17, 29.48, 43.41, 35.17, 59.38], ["2026-04-07", 2026, "abril", "TD", 10.03, 10.42, 10.48, 12.0, 32.48, 47.67, 39.91, 60.43], ["2026-04-07", 2026, "abril", "TN", 7.17, 11.63, 10.17, 10.6, 36.04, 42.74, 37.17, 57.32], ["2026-04-08", 2026, "abril", "TD", 0.0, 0.25, 0.83, 0.75, 0.0, 17.17, 18.12, 31.48], ["2026-04-08", 2026, "abril", "TN", 5.58, 5.52, 11.55, 10.55, 44.59, 41.27, 36.77, 54.66], ["2026-04-09", 2026, "abril", "TD", 12.0, 12.0, 4.5, 8.25, 38.67, 47.26, 40.82, 71.54], ["2026-04-09", 2026, "abril", "TN", 10.58, 10.08, 10.57, 10.47, 41.59, 53.11, 46.09, 66.05], ["2026-04-10", 2026, "abril", "TD", 9.17, 10.25, 10.08, 11.0, 33.24, 44.03, 42.06, 64.72], ["2026-04-10", 2026, "abril", "TN", 8.07, 6.87, 8.88, 10.18, 34.19, 45.11, 36.38, 66.5], ["2026-04-11", 2026, "abril", "TD", 10.25, 11.0, 11.0, 11.0, 33.47, 47.04, 42.01, 63.22], ["2026-04-11", 2026, "abril", "TN", 12.0, 10.15, 10.63, 10.55, 40.86, 51.61, 45.99, 80.74], ["2026-04-12", 2026, "abril", "TD", 9.67, 10.42, 11.25, 11.25, 46.63, 53.25, 54.26, 80.45], ["2026-04-12", 2026, "abril", "TN", 9.08, 0.0, 10.32, 10.58, 42.49, 0.0, 56.79, 101.87], ["2026-04-13", 2026, "abril", "TD", 11.25, 9.67, 12.0, 10.67, 32.87, 41.38, 40.17, 65.73], ["2026-04-13", 2026, "abril", "TN", 3.62, 4.47, 2.08, 3.32, 34.7, 38.56, 38.56, 73.26], ["2026-04-14", 2026, "abril", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-04-14", 2026, "abril", "TN", 3.78, 1.78, 2.37, 3.87, 50.12, 47.94, 45.76, 84.98], ["2026-04-15", 2026, "abril", "TD", 2.87, 0.0, 0.0, 0.0, 31.74, 0.0, 0.0, 0.0], ["2026-04-15", 2026, "abril", "TN", 2.58, 8.45, 9.9, 9.93, 10.16, 58.95, 45.39, 71.91], ["2026-04-16", 2026, "abril", "TD", 5.87, 8.97, 9.03, 10.05, 32.91, 39.03, 34.53, 53.84], ["2026-04-16", 2026, "abril", "TN", 10.35, 12.0, 10.4, 10.37, 27.57, 39.63, 32.97, 60.7], ["2026-04-17", 2026, "abril", "TD", 4.25, 10.25, 12.0, 10.3, 31.16, 43.58, 36.35, 64.05], ["2026-04-17", 2026, "abril", "TN", 10.67, 10.23, 11.18, 10.42, 24.88, 36.09, 32.65, 53.58], ["2026-04-18", 2026, "abril", "TD", 12.0, 10.27, 10.37, 10.4, 39.33, 52.73, 47.49, 76.48], ["2026-04-18", 2026, "abril", "TN", 9.27, 9.92, 9.83, 11.45, 36.83, 48.34, 44.97, 71.36], ["2026-04-19", 2026, "abril", "TD", 10.1, 10.4, 10.17, 10.57, 40.46, 53.96, 47.88, 78.68], ["2026-04-19", 2026, "abril", "TN", 9.98, 10.1, 10.35, 10.37, 40.85, 57.16, 51.38, 79.98], ["2026-04-20", 2026, "abril", "TD", 0.0, 10.2, 10.4, 9.05, 0.0, 57.78, 49.51, 86.05], ["2026-04-20", 2026, "abril", "TN", 0.0, 10.5, 11.58, 10.4, 0.0, 40.78, 41.08, 71.83], ["2026-04-21", 2026, "abril", "TD", 0.0, 9.5, 8.13, 8.05, 0.0, 64.6, 51.64, 99.16], ["2026-04-21", 2026, "abril", "TN", 0.0, 10.33, 6.0, 11.0, 0.0, 78.22, 74.81, 132.63], ["2026-04-22", 2026, "abril", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-04-22", 2026, "abril", "TN", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-04-23", 2026, "abril", "TD", 0.0, 5.5, 5.25, 5.13, 0.0, 53.91, 50.06, 71.24], ["2026-04-23", 2026, "abril", "TN", 0.0, 1.67, 11.25, 11.25, 0.0, 39.47, 38.75, 71.04], ["2026-04-24", 2026, "abril", "TD", 7.88, 5.87, 10.55, 10.57, 90.37, 53.79, 46.8, 79.61], ["2026-04-24", 2026, "abril", "TN", 9.25, 11.0, 11.75, 11.75, 102.75, 53.56, 49.2, 83.85], ["2026-04-25", 2026, "abril", "TD", 4.25, 10.35, 10.55, 10.48, 97.0, 51.88, 52.19, 84.72], ["2026-04-25", 2026, "abril", "TN", 0.0, 11.25, 11.25, 11.25, 0.0, 56.74, 45.63, 84.56], ["2026-04-26", 2026, "abril", "TD", 5.33, 11.37, 9.87, 9.97, 92.09, 51.35, 44.43, 79.24], ["2026-04-26", 2026, "abril", "TN", 9.83, 8.0, 9.75, 10.5, 82.64, 39.3, 48.64, 72.83], ["2026-04-27", 2026, "abril", "TD", 9.55, 8.83, 10.3, 10.33, 72.04, 47.84, 41.99, 67.65], ["2026-04-27", 2026, "abril", "TN", 10.67, 10.87, 10.17, 10.75, 48.88, 34.65, 23.67, 61.34], ["2026-04-28", 2026, "abril", "TD", 10.27, 10.45, 10.6, 10.4, 43.66, 36.03, 33.94, 50.44], ["2026-04-28", 2026, "abril", "TN", 9.95, 9.47, 5.47, 11.6, 45.03, 41.39, 36.36, 51.67], ["2026-04-29", 2026, "abril", "TD", 0.0, 0.38, 0.48, 0.82, 0.0, 56.37, 49.33, 70.47], ["2026-04-29", 2026, "abril", "TN", 10.05, 10.4, 10.32, 10.48, 49.75, 42.1, 37.67, 51.66], ["2026-04-30", 2026, "abril", "TD", 8.9, 10.23, 10.35, 10.35, 51.58, 40.49, 35.96, 54.83], ["2026-04-30", 2026, "abril", "TN", 8.42, 10.35, 10.42, 10.43, 52.65, 43.28, 35.9, 61.53], ["2026-05-01", 2026, "mayo", "TD", 9.95, 10.3, 8.32, 9.1, 50.51, 38.56, 33.62, 56.56], ["2026-05-01", 2026, "mayo", "TN", 8.4, 8.0, 10.92, 10.42, 49.8, 40.27, 34.53, 56.3], ["2026-05-02", 2026, "mayo", "TD", 9.4, 9.27, 9.3, 9.35, 41.08, 39.72, 34.48, 55.3], ["2026-05-02", 2026, "mayo", "TN", 8.62, 10.18, 10.63, 10.58, 50.32, 40.3, 35.05, 58.9], ["2026-05-03", 2026, "mayo", "TD", 10.33, 10.35, 9.68, 10.25, 42.98, 45.92, 32.6, 59.8], ["2026-05-03", 2026, "mayo", "TN", 8.18, 10.48, 9.37, 10.35, 46.28, 42.81, 35.03, 60.33], ["2026-05-04", 2026, "mayo", "TD", 10.07, 10.37, 10.5, 10.13, 41.61, 34.25, 33.54, 53.08], ["2026-05-04", 2026, "mayo", "TN", 10.5, 10.42, 10.4, 9.52, 44.8, 42.85, 35.44, 60.38], ["2026-05-05", 2026, "mayo", "TD", 10.48, 10.0, 10.52, 10.87, 47.93, 38.03, 41.1, 43.35], ["2026-05-05", 2026, "mayo", "TN", 9.78, 7.35, 8.65, 10.38, 51.72, 42.48, 37.99, 59.92], ["2026-05-06", 2026, "mayo", "TD", 5.0, 5.0, 5.0, 5.0, 0.3, 0.31, 0.38, 0.41], ["2026-05-06", 2026, "mayo", "TN", 10.6, 10.58, 10.57, 10.58, 50.3, 36.95, 38.18, 57.01], ["2026-05-07", 2026, "mayo", "TD", 4.0, 12.0, 12.0, 12.0, 58.72, 44.63, 46.98, 72.82], ["2026-05-07", 2026, "mayo", "TN", 10.65, 10.58, 10.62, 9.98, 61.13, 47.43, 44.39, 65.89], ["2026-05-08", 2026, "mayo", "TD", 10.08, 10.42, 12.0, 10.67, 55.2, 50.36, 49.7, 68.66], ["2026-05-08", 2026, "mayo", "TN", 10.58, 12.0, 10.25, 10.55, 60.59, 51.16, 42.97, 67.53], ["2026-05-09", 2026, "mayo", "TD", 8.08, 8.93, 10.42, 10.58, 31.44, 62.34, 55.19, 83.07], ["2026-05-09", 2026, "mayo", "TN", 10.02, 10.5, 10.57, 10.23, 58.66, 46.56, 45.91, 69.13], ["2026-05-10", 2026, "mayo", "TD", 6.83, 10.8, 11.17, 10.45, 46.07, 48.07, 52.08, 62.63], ["2026-05-10", 2026, "mayo", "TN", 0.0, 10.18, 11.68, 10.25, 0.0, 46.21, 46.21, 70.01], ["2026-05-11", 2026, "mayo", "TD", 4.0, 0.0, 10.5, 10.52, 78.1, 0.0, 60.59, 80.48], ["2026-05-11", 2026, "mayo", "TN", 10.38, 10.55, 10.53, 12.0, 63.1, 45.83, 44.98, 52.38], ["2026-05-12", 2026, "mayo", "TD", 12.0, 10.58, 10.67, 10.67, 64.34, 42.41, 43.06, 54.54], ["2026-05-12", 2026, "mayo", "TN", 4.07, 12.0, 9.9, 5.3, 71.24, 40.21, 38.09, 46.55], ["2026-05-13", 2026, "mayo", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-05-13", 2026, "mayo", "TN", 2.82, 4.5, 4.5, 4.5, 88.23, 55.46, 45.38, 85.71], ["2026-05-14", 2026, "mayo", "TD", 9.08, 9.25, 8.77, 10.78, 58.83, 42.57, 47.75, 76.44], ["2026-05-14", 2026, "mayo", "TN", 10.28, 10.33, 12.0, 9.88, 47.79, 45.58, 41.6, 60.95], ["2026-05-15", 2026, "mayo", "TD", 10.08, 12.0, 10.02, 10.4, 63.73, 55.96, 48.41, 75.1], ["2026-05-15", 2026, "mayo", "TN", 10.45, 10.42, 10.13, 10.42, 66.38, 47.23, 47.23, 77.07], ["2026-05-16", 2026, "mayo", "TD", 12.0, 10.3, 10.47, 10.53, 52.51, 51.03, 48.13, 74.38], ["2026-05-16", 2026, "mayo", "TN", 4.57, 5.17, 6.17, 6.17, 67.12, 41.46, 43.43, 61.2], ["2026-05-17", 2026, "mayo", "TD", 3.95, 5.52, 4.6, 5.67, 71.78, 56.4, 46.15, 48.71], ["2026-05-17", 2026, "mayo", "TN", 10.8, 10.42, 10.38, 10.22, 60.74, 44.96, 41.61, 53.6], ["2026-05-18", 2026, "mayo", "TD", 10.55, 8.87, 10.35, 9.07, 56.8, 48.28, 42.08, 72.15], ["2026-05-18", 2026, "mayo", "TN", 10.43, 10.75, 10.8, 10.25, 58.36, 46.84, 33.46, 67.24], ["2026-05-19", 2026, "mayo", "TD", 9.17, 8.37, 9.65, 7.75, 44.08, 37.38, 27.87, 58.75], ["2026-05-19", 2026, "mayo", "TN", 12.0, 8.92, 6.17, 11.83, 52.4, 34.93, 24.45, 52.4], ["2026-05-20", 2026, "mayo", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-05-20", 2026, "mayo", "TN", 7.25, 6.92, 6.75, 6.33, 53.23, 34.81, 30.71, 59.37], ["2026-05-21", 2026, "mayo", "TD", 10.22, 10.58, 10.58, 10.57, 58.62, 40.17, 37.74, 58.92], ["2026-05-21", 2026, "mayo", "TN", 10.5, 10.75, 10.85, 12.0, 65.86, 53.6, 46.15, 75.71], ["2026-05-22", 2026, "mayo", "TD", 11.55, 10.05, 10.27, 10.03, 60.65, 41.46, 36.09, 61.52], ["2026-05-22", 2026, "mayo", "TN", 10.58, 10.58, 12.0, 10.83, 56.95, 54.37, 34.84, 62.66], ["2026-05-23", 2026, "mayo", "TD", 10.55, 12.0, 10.55, 10.5, 64.67, 42.17, 41.38, 63.25], ["2026-05-23", 2026, "mayo", "TN", 11.17, 10.67, 10.62, 12.0, 62.48, 41.63, 39.14, 62.48], ["2026-05-24", 2026, "mayo", "TD", 11.07, 9.52, 10.58, 10.48, 58.62, 38.28, 37.83, 58.62], ["2026-05-24", 2026, "mayo", "TN", 0.0, 0.0, 2.83, 3.08, 0.0, 0.0, 33.82, 51.62], ["2026-05-25", 2026, "mayo", "TD", 3.18, 3.03, 1.87, 3.12, 46.37, 29.37, 29.37, 46.37], ["2026-05-25", 2026, "mayo", "TN", 9.23, 7.22, 8.3, 9.77, 52.19, 36.89, 30.01, 58.03], ["2026-05-26", 2026, "mayo", "TD", 11.72, 9.97, 1.1, 11.08, 53.86, 36.96, 35.11, 34.55], ["2026-05-26", 2026, "mayo", "TN", 10.38, 10.38, 0.0, 10.57, 43.49, 37.39, 0.0, 39.1], ["2026-05-27", 2026, "mayo", "TD", 8.52, 7.2, 0.0, 6.6, 46.25, 33.94, 0.0, 34.81], ["2026-05-27", 2026, "mayo", "TN", 10.4, 12.0, 0.0, 10.23, 29.69, 26.11, 0.0, 30.68], ["2026-05-28", 2026, "mayo", "TD", 10.42, 10.23, 0.0, 10.22, 33.42, 26.59, 0.0, 26.99], ["2026-05-28", 2026, "mayo", "TN", 5.6, 7.93, 0.0, 7.72, 37.32, 30.83, 0.0, 32.45], ["2026-05-29", 2026, "mayo", "TD", 0.0, 0.0, 0.0, 0.42, 0.0, 0.0, 0.0, 67.2], ["2026-05-29", 2026, "mayo", "TN", 8.72, 10.08, 0.0, 10.95, 30.47, 25.9, 0.0, 26.78], ["2026-05-30", 2026, "mayo", "TD", 10.5, 9.12, 3.62, 8.57, 36.88, 21.53, 22.63, 25.53], ["2026-05-30", 2026, "mayo", "TN", 11.18, 10.23, 10.32, 10.4, 41.0, 34.98, 32.67, 39.18], ["2026-05-31", 2026, "mayo", "TD", 10.33, 10.35, 10.58, 10.27, 55.27, 33.53, 39.89, 43.31], ["2026-05-31", 2026, "mayo", "TN", 10.32, 10.25, 10.17, 10.25, 50.83, 41.63, 38.8, 36.62], ["2026-06-01", 2026, "junio", "TD", 10.43, 10.38, 10.5, 10.25, 47.29, 38.34, 45.95, 43.32], ["2026-06-01", 2026, "junio", "TN", 10.4, 10.0, 8.6, 10.22, 90.87, 64.46, 77.72, 74.28], ["2026-06-02", 2026, "junio", "TD", 10.32, 5.07, 10.53, 10.33, 54.58, 45.83, 45.42, 49.18], ["2026-06-02", 2026, "junio", "TN", 10.23, 8.75, 10.58, 8.75, 54.56, 40.01, 37.57, 41.83], ["2026-06-02", 2026, "junio", "TD", 3.33, 3.33, 3.33, 3.33, 55.95, 38.59, 42.45, 46.31], ["2026-06-03", 2026, "junio", "TD", 0.0, 0.83, 1.0, 1.0, 0.0, 38.18, 20.09, 20.09], ["2026-06-03", 2026, "junio", "TN", 5.38, 5.1, 4.7, 4.35, 31.91, 28.87, 27.35, 33.43], ["2026-06-04", 2026, "junio", "TD", 6.25, 4.5, 6.08, 2.0, 31.81, 26.51, 27.84, 13.26], ["2026-06-04", 2026, "junio", "TN", 10.53, 5.12, 10.63, 5.28, 46.79, 35.68, 40.05, 38.93], ["2026-06-05", 2026, "junio", "TD", 11.25, 9.25, 10.25, 11.25, 36.85, 37.59, 32.69, 33.57], ["2026-06-05", 2026, "junio", "TN", 4.77, 5.22, 6.0, 4.88, 44.09, 35.04, 36.79, 36.93], ["2026-06-06", 2026, "junio", "TD", 11.25, 11.25, 11.25, 11.25, 43.72, 40.35, 34.53, 36.51], ["2026-06-06", 2026, "junio", "TN", 9.8, 9.55, 9.88, 9.73, 53.62, 40.17, 43.27, 47.9], ["2026-06-07", 2026, "junio", "TD", 11.25, 11.25, 11.25, 11.25, 54.13, 38.93, 46.78, 47.54], ["2026-06-07", 2026, "junio", "TN", 4.93, 3.92, 4.93, 4.93, 54.49, 39.96, 49.04, 54.49], ["2026-06-08", 2026, "junio", "TD", 4.5, 4.92, 5.17, 5.25, 44.72, 33.39, 47.45, 42.18], ["2026-06-08", 2026, "junio", "TN", 10.5, 10.57, 10.6, 10.47, 50.54, 41.36, 59.32, 52.97], ["2026-06-09", 2026, "junio", "TD", 12.0, 11.25, 11.25, 11.25, 48.23, 50.21, 57.71, 36.55], ["2026-06-09", 2026, "junio", "TN", 10.48, 9.73, 2.83, 7.18, 47.53, 35.24, 40.64, 53.68], ["2026-06-10", 2026, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-06-10", 2026, "junio", "TN", 9.85, 9.65, 9.65, 9.37, 45.37, 39.19, 66.0, 45.37], ["2026-06-11", 2026, "junio", "TD", 8.37, 7.42, 6.65, 6.92, 42.78, 48.03, 53.01, 46.03], ["2026-06-11", 2026, "junio", "TN", 9.82, 9.67, 9.98, 10.12, 32.37, 34.95, 49.4, 34.52], ["2026-06-12", 2026, "junio", "TD", 10.48, 10.48, 10.3, 10.28, 39.83, 44.02, 49.61, 36.95], ["2026-06-12", 2026, "junio", "TN", 10.37, 12.0, 10.57, 10.32, 32.44, 39.54, 61.5, 41.52], ["2026-06-13", 2026, "junio", "TD", 10.37, 9.65, 10.2, 10.52, 35.53, 33.44, 58.05, 37.35], ["2026-06-13", 2026, "junio", "TN", 10.42, 10.38, 10.37, 10.3, 29.34, 35.14, 59.0, 41.75], ["2026-06-14", 2026, "junio", "TD", 10.42, 10.45, 10.5, 11.68, 34.26, 37.01, 63.97, 43.71], ["2026-06-14", 2026, "junio", "TN", 9.25, 10.35, 10.53, 9.88, 20.41, 44.57, 62.51, 57.32], ["2026-06-15", 2026, "junio", "TD", 4.48, 10.3, 10.98, 10.43, 23.87, 40.18, 60.25, 44.03], ["2026-06-15", 2026, "junio", "TN", 9.57, 11.4, 10.42, 10.52, 22.79, 35.07, 41.44, 38.09], ["2026-06-16", 2026, "junio", "TD", 8.65, 10.47, 10.33, 11.67, 25.42, 39.58, 52.7, 47.5], ["2026-06-16", 2026, "junio", "TN", 11.33, 7.25, 12.0, 8.17, 21.55, 39.18, 45.06, 31.35], ["2026-06-17", 2026, "junio", "TD", 0.0, 0.0, 0.22, 0.27, 0.0, 0.0, 0.0, 0.0], ["2026-06-17", 2026, "junio", "TN", 10.67, 12.0, 11.25, 12.0, 21.74, 41.51, 35.58, 45.47], ["2026-06-18", 2026, "junio", "TD", 8.08, 12.22, 11.38, 8.5, 20.71, 34.86, 29.18, 42.18], ["2026-06-18", 2026, "junio", "TN", 12.0, 11.25, 11.25, 11.25, 22.26, 29.68, 22.81, 31.86], ["2026-06-19", 2026, "junio", "TD", 5.95, 12.0, 8.5, 10.47, 26.94, 32.33, 31.11, 40.45], ["2026-06-19", 2026, "junio", "TN", 11.0, 11.25, 4.83, 11.25, 50.46, 43.88, 50.46, 46.07], ["2026-06-20", 2026, "junio", "TD", 10.62, 10.52, 15.62, 12.0, 61.08, 45.63, 30.85, 52.57], ["2026-06-20", 2026, "junio", "TN", 11.25, 11.17, 11.25, 11.25, 64.8, 44.0, 65.65, 58.66], ["2026-06-21", 2026, "junio", "TD", 10.58, 10.58, 10.57, 10.57, 73.38, 60.73, 72.5, 62.03], ["2026-06-21", 2026, "junio", "TN", 12.0, 11.25, 11.25, 11.25, 65.34, 45.01, 68.75, 56.63], ["2026-06-22", 2026, "junio", "TD", 8.87, 9.23, 9.62, 10.27, 50.16, 34.13, 42.32, 44.53], ["2026-06-22", 2026, "junio", "TN", 11.25, 12.0, 11.25, 11.25, 45.6, 32.8, 35.25, 36.44], ["2026-06-23", 2026, "junio", "TD", 10.48, 10.45, 10.53, 10.57, 55.45, 39.09, 43.38, 49.24], ["2026-06-23", 2026, "junio", "TN", 10.33, 6.65, 10.33, 7.93, 56.86, 36.01, 49.28, 34.12], ["2026-06-24", 2026, "junio", "TD", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], ["2026-06-24", 2026, "junio", "TN", 9.32, 7.25, 7.42, 10.65, 50.18, 38.07, 43.26, 34.61], ["2026-06-25", 2026, "junio", "TD", 10.53, 10.18, 6.92, 10.52, 42.17, 25.54, 32.27, 26.21], ["2026-06-25", 2026, "junio", "TN", 10.52, 10.3, 4.65, 9.93, 44.08, 29.2, 38.3, 30.76], ["2026-06-26", 2026, "junio", "TD", 9.63, 10.88, 10.03, 10.32, 35.58, 25.06, 29.58, 26.34], ["2026-06-26", 2026, "junio", "TN", 10.23, 10.38, 10.4, 10.33, 46.02, 42.18, 41.06, 34.37], ["2026-06-27", 2026, "junio", "TD", 10.82, 10.58, 10.55, 9.98, 61.58, 36.56, 48.11, 35.21], ["2026-06-27", 2026, "junio", "TN", 10.62, 8.53, 10.53, 12.0, 62.41, 41.61, 46.48, 32.15], ["2026-06-28", 2026, "junio", "TD", 10.37, 10.5, 10.55, 10.6, 57.58, 37.35, 49.13, 38.44], ["2026-06-28", 2026, "junio", "TN", 9.25, 10.55, 10.58, 10.5, 54.11, 40.09, 45.35, 47.01], ["2026-06-29", 2026, "junio", "TD", 10.33, 10.48, 10.58, 10.23, 46.76, 32.25, 42.95, 32.95], ["2026-06-29", 2026, "junio", "TN", 10.57, 10.45, 10.58, 10.37, 48.34, 36.28, 39.13, 36.75], ["2026-06-30", 2026, "junio", "TD", 10.18, 7.2, 10.33, 10.1, 55.86, 37.87, 45.52, 30.41], ["2026-06-30", 2026, "junio", "TN", 8.82, 8.45, 10.48, 9.35, 47.11, 37.61, 44.69, 38.1], ["2026-07-01", 2026, "julio", "TD", 7.58, 8.33, 8.33, 8.33, 35.04, 20.74, 36.61, 31.73], ["2026-07-01", 2026, "julio", "TN", 12.0, 9.5, 10.4, 7.0, 41.14, 27.43, 32.27, 32.88], ["2026-07-02", 2026, "julio", "TN", 10.62, 10.07, 10.62, 12.0, 60.93, 41.26, 47.54, 43.59], ["2026-07-03", 2026, "julio", "TD", 11.25, 12.0, 11.25, 11.25, 52.02, 36.42, 42.75, 37.23], ["2026-07-03", 2026, "julio", "TN", 10.6, 10.53, 12.0, 10.57, 53.2, 38.32, 47.93, 42.61], ["2026-07-04", 2026, "julio", "TD", 11.33, 11.25, 10.42, 10.58, 67.46, 44.57, 51.11, 15.94], ["2026-07-04", 2026, "julio", "TN", 11.95, 10.5, 10.67, 7.37, 50.51, 40.41, 48.83, 42.79], ["2026-07-05", 2026, "julio", "TD", 10.58, 12.0, 11.25, 9.33, 62.09, 43.28, 54.48, 45.71], ["2026-07-05", 2026, "julio", "TN", 10.57, 10.68, 10.6, 10.65, 63.08, 45.65, 57.07, 47.78], ["2026-07-06", 2026, "julio", "TD", 11.25, 0.0, 11.33, 11.25, 90.98, 0.0, 81.88, 59.78], ["2026-07-06", 2026, "julio", "TN", 10.63, 0.0, 12.0, 10.55, 61.26, 0.0, 50.62, 40.49], ["2026-07-07", 2026, "julio", "TD", 12.0, 0.0, 11.5, 11.25, 48.2, 0.0, 37.25, 38.69], ["2026-07-07", 2026, "julio", "TN", 10.85, 0.0, 10.48, 9.27, 55.29, 0.0, 36.86, 43.77], ["2026-07-08", 2026, "julio", "TD", 0.53, 0.0, 2.97, 0.92, 40.01, 0.0, 28.47, 38.41], ["2026-07-08", 2026, "julio", "TN", 11.63, 0.0, 9.93, 12.0, 57.75, 0.0, 51.21, 42.2], ["2026-07-09", 2026, "julio", "TD", 9.72, 3.52, 10.92, 8.77, 49.93, 65.2, 47.94, 35.38], ["2026-07-09", 2026, "julio", "TN", 10.32, 8.82, 11.33, 10.13, 53.55, 65.8, 52.05, 41.21], ["2026-07-10", 2026, "julio", "TD", 9.6, 11.13, 9.95, 7.67, 62.76, 69.91, 53.44, 51.31], ["2026-07-10", 2026, "julio", "TN", 10.28, 9.47, 9.67, 10.67, 69.57, 74.87, 52.35, 41.33], ["2026-07-11", 2026, "julio", "TD", 10.55, 10.42, 9.43, 10.05, 55.59, 55.94, 47.84, 36.67], ["2026-07-11", 2026, "julio", "TN", 11.3, 10.22, 10.52, 10.35, 63.62, 68.13, 53.01, 42.36], ["2026-07-12", 2026, "julio", "TD", 9.55, 11.12, 8.35, 9.7, 61.38, 82.62, 65.51, 49.53], ["2026-07-12", 2026, "julio", "TN", 7.63, 7.65, 7.88, 8.7, 40.61, 51.16, 36.73, 28.86], ["2026-07-13", 2026, "julio", "TD", 8.93, 10.87, 9.78, 12.0, 36.4, 40.54, 41.79, 27.86], ["2026-07-13", 2026, "julio", "OTRO", 9.95, 9.7, 11.18, 9.27, 52.2, 66.26, 44.28, 34.93], ["2026-07-14", 2026, "julio", "TD", 10.27, 10.2, 10.83, 10.47, 58.11, 63.98, 46.09, 38.07], ["2026-07-14", 2026, "julio", "TN", 1.5, 11.5, 6.0, 9.75, 106.77, 0.0, 76.26, 79.31]]};
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTxfeHD1wK186S2y7dYWVWLgg3wlxCwKG3eqlRh_7lY1nYTMI3KEBmvTs-SAyZwYM82NKWaXJ7G57pq/pub?gid=1237607582&single=true&output=csv";
+document.getElementById('logo').src=LOGO;
+const nf=new Intl.NumberFormat('es-CL');
+const fmt=n=>nf.format(Math.round(n||0));
+const fmtCompact=n=>{n=n||0; return Math.abs(n)>=1000000?(n/1000000).toLocaleString('es-CL',{maximumFractionDigits:2})+' Mt':(n/1000).toLocaleString('es-CL',{maximumFractionDigits:0})+' kt'};
+const fmt1=n=>nf.format(Math.round((n||0)*10)/10);
+
+let DATA=FALLBACK_DATA, YEARS=[], OPEN_MONTH_KEY=null, RAW_ROWS=null, RAW_ROWS_LIVE=false;
+const FALLBACK_RAW_ROWS = RAW_FALLBACK.rows.map(r=>{
+ const o={}; RAW_FALLBACK.header.forEach((h,i)=>o[h]=r[i]); return o;
+});
+const state={years:new Set(), from:null, to:null};
+
+const MES_MAP={enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12};
+const MES_LABELS={1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"};
+
+function splitCSVLine(line){
+ const result=[]; let cur=''; let inQuotes=false;
+ for(let i=0;i<line.length;i++){
+  const c=line[i];
+  if(inQuotes){
+   if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else {inQuotes=false;} }
+   else cur+=c;
+  } else {
+   if(c==='"') inQuotes=true;
+   else if(c===','){result.push(cur);cur='';}
+   else cur+=c;
+  }
+ }
+ result.push(cur);
+ return result;
+}
+function parseCSV(text){
+ const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.length>0);
+ if(lines.length<2) return [];
+ let headerLine=lines[0];
+ if(headerLine.charCodeAt(0)===0xFEFF) headerLine=headerLine.slice(1);
+ const headers=splitCSVLine(headerLine).map(h=>h.trim());
+ const out=[];
+ for(let i=1;i<lines.length;i++){
+  const vals=splitCSVLine(lines[i]);
+  if(vals.length===1 && vals[0].trim()==='') continue;
+  const obj={};
+  headers.forEach((h,idx)=>obj[h]=vals[idx]!==undefined?vals[idx]:'');
+  out.push(obj);
+ }
+ return out;
+}
+function numv(v){
+ if(v===undefined||v===null||v==='') return 0;
+ let s=String(v).trim();
+ if(s==='') return 0;
+ const hasComma=s.indexOf(',')!==-1, hasDot=s.indexOf('.')!==-1;
+ if(hasComma && hasDot){
+  s=s.replace(/,/g,'');
+ } else if(hasComma && !hasDot){
+  s=s.replace(',', '.');
+ }
+ const n=parseFloat(s);
+ return isNaN(n)?0:n;
+}
+function round1(v){return Math.round(v*10)/10}
+
+function detectUtilScale(rows){
+ let sum=0, n=0;
+ rows.forEach(r=>{
+  [1,2,3,4].forEach(i=>{
+   const v=numv(r['UTILIZACION FILTRO '+i]);
+   if(v>0){ sum+=v; n++; }
+  });
+ });
+ if(n===0) return 100;
+ const avg=sum/n;
+ return avg>3 ? 1 : 100;
+}
+
+function aggregateMonthly(rows){
+ const UTIL_SCALE=detectUtilScale(rows);
+ const buckets={};
+ rows.forEach(r=>{
+  const anoRaw=r['AÑO']!==undefined?r['AÑO']:(r['ANO']!==undefined?r['ANO']:r['Año']);
+  const mesRaw=(r['MES']||'').toString().trim().toLowerCase();
+  const ano=parseInt(anoRaw,10);
+  const mesNum=MES_MAP[mesRaw];
+  if(!ano || !mesNum) return;
+  const key=`${ano}-${String(mesNum).padStart(2,'0')}`;
+  if(!buckets[key]) buckets[key]={ano,mesNum,f1:0,f2:0,f3:0,f4:0,ceramico:0,prensa:0,total:0,
+   agua1:0,agua2:0,agua3:0,agua4:0,horas1:0,horas2:0,horas3:0,horas4:0,
+   wtph1:0,wtph2:0,wtph3:0,wtph4:0,htph1:0,htph2:0,htph3:0,htph4:0,util1sum:0,util2sum:0,util3sum:0,util4sum:0,nshifts:0,
+   ciclosFP1:0,ciclosFP2:0};
+  const b=buckets[key];
+  const f1=numv(r['TONELAJE FILTRADO F1']),f2=numv(r['TONELAJE FILTRADO F2']),f3=numv(r['TONELAJE FILTRADO F3']),f4=numv(r['TONELAJE FILTRADO F4']);
+  const ceramRaw=r['RELAVE FILTRADO CERAMICO'];
+  const ceramico=(ceramRaw!==undefined && String(ceramRaw).trim()!=='')?numv(ceramRaw):(f1+f2+f3+f4);
+  const prensa=numv(r['FILTRADO FILTROS PRENSA']);
+  b.f1+=f1;b.f2+=f2;b.f3+=f3;b.f4+=f4;
+  b.ceramico+=ceramico;b.prensa+=prensa;b.total+=ceramico+prensa;
+  b.agua1+=numv(r['AGUA RECUPERADA FILTRO 1']);b.agua2+=numv(r['AGUA RECUPERADA FILTRO 2']);
+  b.agua3+=numv(r['AGUA RECUPERADA FILTRO 3']);b.agua4+=numv(r['AGUA RECUPERADA FILTRO 4']);
+  const h1=numv(r['HORAS OPERACION FILTRO 1']),h2=numv(r['HORAS OPERACION FILTRO 2']),h3=numv(r['HORAS OPERACION FILTRO 3']),h4=numv(r['HORAS OPERACION FILTRO 4']);
+  b.horas1+=h1;b.horas2+=h2;b.horas3+=h3;b.horas4+=h4;
+  const t1=numv(r['PROMEDIO TPH F1']), t2=numv(r['PROMEDIO TPH F2']), t3=numv(r['PROMEDIO TPH F3']), t4=numv(r['PROMEDIO TPH F4']);
+  if(h1>0 && t1>0){ b.wtph1+=t1*h1; b.htph1+=h1; }
+  if(h2>0 && t2>0){ b.wtph2+=t2*h2; b.htph2+=h2; }
+  if(h3>0 && t3>0){ b.wtph3+=t3*h3; b.htph3+=h3; }
+  if(h4>0 && t4>0){ b.wtph4+=t4*h4; b.htph4+=h4; }
+  b.ciclosFP1+=numv(r['CICLOS FP1']); b.ciclosFP2+=numv(r['CICLOS FP2']);
+  b.util1sum+=numv(r['UTILIZACION FILTRO 1']); b.util2sum+=numv(r['UTILIZACION FILTRO 2']);
+  b.util3sum+=numv(r['UTILIZACION FILTRO 3']); b.util4sum+=numv(r['UTILIZACION FILTRO 4']);
+  b.nshifts+=1;
+ });
+ const keys=Object.keys(buckets).sort();
+ return keys.map(key=>{
+  const b=buckets[key];
+  const ciclosTotal=b.ciclosFP1+b.ciclosFP2;
+  const sharePrensa=b.total>0?round1(b.prensa/b.total*100):0;
+  const tph1=b.htph1>0?round1(b.wtph1/b.htph1):0, tph2=b.htph2>0?round1(b.wtph2/b.htph2):0;
+  const tph3=b.htph3>0?round1(b.wtph3/b.htph3):0, tph4=b.htph4>0?round1(b.wtph4/b.htph4):0;
+  const util1=b.nshifts>0?round1(b.util1sum/b.nshifts*UTIL_SCALE):0, util2=b.nshifts>0?round1(b.util2sum/b.nshifts*UTIL_SCALE):0;
+  const util3=b.nshifts>0?round1(b.util3sum/b.nshifts*UTIL_SCALE):0, util4=b.nshifts>0?round1(b.util4sum/b.nshifts*UTIL_SCALE):0;
+  return {key, label:`${MES_LABELS[b.mesNum]} ${String(b.ano).slice(2)}`, mes:MES_LABELS[b.mesNum], mesNum:b.mesNum, ano:b.ano,
+   total:round1(b.total), ceramico:round1(b.ceramico), prensa:round1(b.prensa), sharePrensa,
+   f1:round1(b.f1), f2:round1(b.f2), f3:round1(b.f3), f4:round1(b.f4),
+   agua1:round1(b.agua1), agua2:round1(b.agua2), agua3:round1(b.agua3), agua4:round1(b.agua4),
+   aguaTotal:round1(b.agua1+b.agua2+b.agua3+b.agua4),
+   tph1,tph2,tph3,tph4, util1,util2,util3,util4,
+   ciclosFP1:Math.round(b.ciclosFP1), ciclosFP2:Math.round(b.ciclosFP2), ciclosTotal:Math.round(ciclosTotal)};
+ });
+}
+
+function buildDailyFull(rawRows,startMs,endMs){
+ const UTIL_SCALE=detectUtilScale(rawRows);
+ const buckets={};
+ rawRows.forEach(r=>{
+  const ms=rowDateUTC(r); if(ms===null||ms<startMs||ms>endMs) return;
+  const key=new Date(ms).toISOString().slice(0,10);
+  if(!buckets[key]) buckets[key]={ms,f1:0,f2:0,f3:0,f4:0,ceramico:0,prensa:0,total:0,
+   agua1:0,agua2:0,agua3:0,agua4:0,
+   wtph1:0,wtph2:0,wtph3:0,wtph4:0,htph1:0,htph2:0,htph3:0,htph4:0,util1sum:0,util2sum:0,util3sum:0,util4sum:0,nshifts:0,
+   ciclosFP1:0,ciclosFP2:0};
+  const b=buckets[key];
+  const f1=numv(r['TONELAJE FILTRADO F1']),f2=numv(r['TONELAJE FILTRADO F2']),f3=numv(r['TONELAJE FILTRADO F3']),f4=numv(r['TONELAJE FILTRADO F4']);
+  const ceramRaw=r['RELAVE FILTRADO CERAMICO'];
+  const ceramico=(ceramRaw!==undefined && String(ceramRaw).trim()!=='')?numv(ceramRaw):(f1+f2+f3+f4);
+  const prensa=numv(r['FILTRADO FILTROS PRENSA']);
+  b.f1+=f1;b.f2+=f2;b.f3+=f3;b.f4+=f4;
+  b.ceramico+=ceramico;b.prensa+=prensa;b.total+=ceramico+prensa;
+  b.agua1+=numv(r['AGUA RECUPERADA FILTRO 1']);b.agua2+=numv(r['AGUA RECUPERADA FILTRO 2']);
+  b.agua3+=numv(r['AGUA RECUPERADA FILTRO 3']);b.agua4+=numv(r['AGUA RECUPERADA FILTRO 4']);
+  const h1=numv(r['HORAS OPERACION FILTRO 1']),h2=numv(r['HORAS OPERACION FILTRO 2']),h3=numv(r['HORAS OPERACION FILTRO 3']),h4=numv(r['HORAS OPERACION FILTRO 4']);
+  const t1=numv(r['PROMEDIO TPH F1']), t2=numv(r['PROMEDIO TPH F2']), t3=numv(r['PROMEDIO TPH F3']), t4=numv(r['PROMEDIO TPH F4']);
+  if(h1>0 && t1>0){ b.wtph1+=t1*h1; b.htph1+=h1; }
+  if(h2>0 && t2>0){ b.wtph2+=t2*h2; b.htph2+=h2; }
+  if(h3>0 && t3>0){ b.wtph3+=t3*h3; b.htph3+=h3; }
+  if(h4>0 && t4>0){ b.wtph4+=t4*h4; b.htph4+=h4; }
+  b.ciclosFP1+=numv(r['CICLOS FP1']); b.ciclosFP2+=numv(r['CICLOS FP2']);
+  b.util1sum+=numv(r['UTILIZACION FILTRO 1']); b.util2sum+=numv(r['UTILIZACION FILTRO 2']);
+  b.util3sum+=numv(r['UTILIZACION FILTRO 3']); b.util4sum+=numv(r['UTILIZACION FILTRO 4']);
+  b.nshifts+=1;
+ });
+ const keys=Object.keys(buckets).sort();
+ return keys.map(key=>{
+  const b=buckets[key];
+  const d=new Date(b.ms);
+  const y=d.getUTCFullYear(), mo=d.getUTCMonth()+1, day=d.getUTCDate();
+  const ciclosTotal=b.ciclosFP1+b.ciclosFP2;
+  const sharePrensa=b.total>0?round1(b.prensa/b.total*100):0;
+  const tph1=b.htph1>0?round1(b.wtph1/b.htph1):0, tph2=b.htph2>0?round1(b.wtph2/b.htph2):0;
+  const tph3=b.htph3>0?round1(b.wtph3/b.htph3):0, tph4=b.htph4>0?round1(b.wtph4/b.htph4):0;
+  const util1=b.nshifts>0?round1(b.util1sum/b.nshifts*UTIL_SCALE):0, util2=b.nshifts>0?round1(b.util2sum/b.nshifts*UTIL_SCALE):0;
+  const util3=b.nshifts>0?round1(b.util3sum/b.nshifts*UTIL_SCALE):0, util4=b.nshifts>0?round1(b.util4sum/b.nshifts*UTIL_SCALE):0;
+  return {key, label:`${String(day).padStart(2,'0')}-${MES_LABELS[mo]}`, mes:MES_LABELS[mo], mesNum:mo, ano:y,
+   total:round1(b.total), ceramico:round1(b.ceramico), prensa:round1(b.prensa), sharePrensa,
+   f1:round1(b.f1), f2:round1(b.f2), f3:round1(b.f3), f4:round1(b.f4),
+   agua1:round1(b.agua1), agua2:round1(b.agua2), agua3:round1(b.agua3), agua4:round1(b.agua4),
+   aguaTotal:round1(b.agua1+b.agua2+b.agua3+b.agua4),
+   tph1,tph2,tph3,tph4, util1,util2,util3,util4,
+   ciclosFP1:Math.round(b.ciclosFP1), ciclosFP2:Math.round(b.ciclosFP2), ciclosTotal:Math.round(ciclosTotal)};
+ });
+}
+const GRANULARITY_THRESHOLD_DAYS=95;
+function parseDateInput(v){ if(!v) return null; const [y,mo,d]=v.split('-').map(Number); return Date.UTC(y,mo-1,d); }
+
+function setSyncTag(mode,text){
+ const el=document.getElementById('syncStatus');
+ el.className='synctag '+mode;
+ el.innerHTML=`<span class="dot2"></span><span>${text}</span>`;
+}
+
+async function loadData(isManual){
+ if(isManual) setSyncTag('loading','Actualizando…');
+ try{
+  const url=CSV_URL+(CSV_URL.includes('?')?'&':'?')+'_ts='+Date.now();
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const text=await res.text();
+  const rows=parseCSV(text);
+  if(!rows.length) throw new Error('CSV vacío');
+  const monthly=aggregateMonthly(rows);
+  if(!monthly.length) throw new Error('Sin datos agregables');
+  DATA=monthly;
+  RAW_ROWS=rows;
+  RAW_ROWS_LIVE=true;
+  const now=new Date();
+  setSyncTag('ok','Sincronizado · '+now.toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+ }catch(err){
+  console.error('Error de sincronización con Google Sheets:',err);
+  DATA=FALLBACK_DATA;
+  RAW_ROWS=FALLBACK_RAW_ROWS;
+  RAW_ROWS_LIVE=false;
+  setSyncTag('warn','Sin conexión al Sheet — datos de respaldo');
+ }
+ YEARS=[...new Set(DATA.map(d=>d.ano))].sort();
+ const dayMsList=(RAW_ROWS||[]).map(r=>rowDateUTC(r)).filter(v=>v!==null);
+ const maxMs=dayMsList.length?Math.max(...dayMsList):Date.now();
+ const minMs=Date.UTC(DATA[0].ano, DATA[0].mesNum-1, 1);
+ const iso=ms=>new Date(ms).toISOString().slice(0,10);
+ state.dataMin=iso(minMs); state.dataMax=iso(maxMs);
+ state.years=new Set(YEARS); state.from=state.dataMin; state.to=state.dataMax;
+ OPEN_MONTH_KEY=DATA[DATA.length-1].key;
+ document.getElementById('periodTag').textContent=`${DATA[0].label} · ${DATA[DATA.length-1].label}`;
+ buildFilterUI();
+ refresh();
+}
+
+function buildFilterUI(){
+ const yc=document.getElementById('yearChips');
+ yc.innerHTML='';
+ YEARS.forEach(y=>{
+  const b=document.createElement('button');
+  b.className='chip on'; b.textContent=y; b.dataset.year=y;
+  b.addEventListener('click',()=>{
+   if(state.years.has(y)){ if(state.years.size>1){state.years.delete(y); b.classList.remove('on')} }
+   else { state.years.add(y); b.classList.add('on') }
+   refresh();
+  });
+  yc.appendChild(b);
+ });
+ const fromSel=document.getElementById('fromSel'), toSel=document.getElementById('toSel');
+ fromSel.min=state.dataMin; fromSel.max=state.dataMax;
+ toSel.min=state.dataMin; toSel.max=state.dataMax;
+ fromSel.value=state.from; toSel.value=state.to;
+ fromSel.addEventListener('change',()=>{if(!fromSel.value)return; state.from=fromSel.value; if(state.from>state.to){state.to=state.from; toSel.value=state.to} refresh()});
+ toSel.addEventListener('change',()=>{if(!toSel.value)return; state.to=toSel.value; if(state.to<state.from){state.from=state.to; fromSel.value=state.from} refresh()});
+ document.getElementById('resetBtn').addEventListener('click',()=>{
+  state.years=new Set(YEARS); state.from=state.dataMin; state.to=state.dataMax;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.add('on'));
+  fromSel.value=state.from; toSel.value=state.to; refresh();
+ });
+}
+
+function getFiltered(){
+ const startMs=parseDateInput(state.from), endMs=parseDateInput(state.to);
+ if(startMs===null||endMs===null) return DATA.filter(d=>state.years.has(d.ano));
+ const days=Math.round((endMs-startMs)/86400000)+1;
+ if(days<=GRANULARITY_THRESHOLD_DAYS && RAW_ROWS && RAW_ROWS.length){
+  const daily=buildDailyFull(RAW_ROWS, startMs, endMs).filter(d=>state.years.has(d.ano));
+  if(daily.length) return daily;
+ }
+ const fk=d=>`${new Date(d).getUTCFullYear()}-${String(new Date(d).getUTCMonth()+1).padStart(2,'0')}`;
+ const fromKey=fk(startMs), toKey=fk(endMs);
+ return DATA.filter(d=>state.years.has(d.ano) && d.key>=fromKey && d.key<=toKey);
+}
+function getFilteredByYear(){return DATA.filter(d=>state.years.has(d.ano))}
+function set(id,txt){const el=document.getElementById(id); if(el) el.textContent=txt}
+function colorVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
+function svgEl(tag,attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
+function clear(id){const el=document.getElementById(id);el.innerHTML='';return el}
+function catmullRomPath(points){if(points.length<2)return'';let d=`M ${points[0].x} ${points[0].y}`;for(let i=0;i<points.length-1;i++){let p0=points[i-1]||points[i],p1=points[i],p2=points[i+1],p3=points[i+2]||p2;let cp1x=p1.x+(p2.x-p0.x)/6,cp1y=p1.y+(p2.y-p0.y)/6,cp2x=p2.x-(p3.x-p1.x)/6,cp2y=p2.y-(p3.y-p1.y)/6;d+=` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`}return d}
+function axes(svg,w,h,m,max,unit='t'){for(let g=0;g<=4;g++){let yy=m.t+g*(h-m.t-m.b)/4;svg.appendChild(svgEl('line',{x1:m.l,y1:yy,x2:w-m.r,y2:yy,class:'gridline'}));let tv=max-max*g/4;let t=svgEl('text',{x:m.l-8,y:yy+4,'text-anchor':'end',class:'tick'});t.textContent=unit==='%'?fmt1(tv)+'%':(unit==='u'?fmt(tv):fmtCompact(tv));svg.appendChild(t)}svg.appendChild(svgEl('line',{x1:m.l,y1:h-m.b,x2:w-m.r,y2:h-m.b,class:'axis'}));svg.appendChild(svgEl('line',{x1:m.l,y1:m.t,x2:m.l,y2:h-m.b,class:'axis'}))}
+function xLabel(svg,x,y,text,skip){const t=svgEl('text',{x,y,'text-anchor':'end',class:'tick',transform:`rotate(-35 ${x} ${y})`});t.textContent=skip?'':text;svg.appendChild(t)}
+
+function yearSeparators(svg,rows,m,h,xBoundaryFn){
+ rows.forEach((r,i)=>{
+  if(i>0 && r.ano!==rows[i-1].ano){
+   let xx=xBoundaryFn(i);
+   svg.appendChild(svgEl('line',{x1:xx,y1:m.t,x2:xx,y2:h-m.b,stroke:colorVar('--dim'),'stroke-width':1.2,'stroke-dasharray':'5 4',opacity:.6}));
+   let lbl=svgEl('text',{x:xx+6,y:m.t+13,class:'axis-title'});lbl.textContent=r.ano;svg.appendChild(lbl);
+  }
+ });
+}
+
+function lineChart(id,rows,key,color,unit,yearMarkers,marker){
+ const el=clear(id),w=el.clientWidth||900,h=el.clientHeight||390,m={l:58,r:18,t:26,b:60};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(rows.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ let max=Math.max(1,...rows.map(d=>d[key]))*1.16;
+ axes(svg,w,h,m,max,unit);
+ if(rows.length===1){
+  const r=rows[0];
+  const bw=Math.min(110,(w-m.l-m.r)*0.22);
+  const cx=(m.l+(w-m.r))/2;
+  const hv=(r[key]||0)/max*(h-m.t-m.b);
+  const grad=svgEl('linearGradient',{id:'grad_'+id,x1:'0',y1:'0',x2:'0',y2:'1'});
+  grad.appendChild(svgEl('stop',{offset:'0%','stop-color':colorVar(color),'stop-opacity':.95}));
+  grad.appendChild(svgEl('stop',{offset:'100%','stop-color':colorVar(color),'stop-opacity':.45}));
+  const defs=svgEl('defs');defs.appendChild(grad);svg.appendChild(defs);
+  const rc=svgEl('rect',{x:cx-bw/2,y:h-m.b-hv,width:bw,height:Math.max(hv,0),rx:5,fill:`url(#grad_${id})`});
+  rc.appendChild(svgEl('title')).textContent=`${r.label}: ${fmt(r[key])} ${unit==='%'?'%':(unit==='u'?'t/h':'t')}`;
+  svg.appendChild(rc);
+  const vt=svgEl('text',{x:cx,y:Math.max(h-m.b-hv-12,m.t+16),'text-anchor':'middle',class:'tooltip-label'});
+  vt.textContent=fmt(r[key])+(unit==='%'?'%':(unit==='u'?' t/h':' t'));
+  svg.appendChild(vt);
+  xLabel(svg,cx,h-16,r.label,false);
+  return;
+ }
+ let x=i=>m.l+i*(w-m.l-m.r)/(rows.length-1);
+ let y=v=>h-m.b-v/max*(h-m.t-m.b);
+ if(yearMarkers) yearSeparators(svg,rows,m,h,i=>(x(i-1)+x(i))/2);
+ if(marker){
+  const idx=rows.findIndex(r=>r.key===marker.key);
+  if(idx>=0){
+   const xx=idx===0? x(0) : (x(idx-1)+x(idx))/2;
+   svg.appendChild(svgEl('line',{x1:xx,y1:m.t,x2:xx,y2:h-m.b,stroke:colorVar('--vivid'),'stroke-width':2,'stroke-dasharray':'7 5'}));
+   const lbl=svgEl('text',{x:xx+6,y:m.t+13,fill:colorVar('--vivid'),'font-size':'11','font-weight':'800'});lbl.textContent=marker.label;svg.appendChild(lbl);
+  }
+ }
+ let pts=rows.map((r,i)=>({x:x(i),y:y(r[key])}));
+ let line=catmullRomPath(pts);
+ let area=line+` L ${x(rows.length-1)} ${h-m.b} L ${x(0)} ${h-m.b} Z`;
+ let grad=svgEl('linearGradient',{id:'grad_'+id,x1:'0',y1:'0',x2:'0',y2:'1'});
+ grad.appendChild(svgEl('stop',{offset:'0%','stop-color':colorVar(color),'stop-opacity':.33}));
+ grad.appendChild(svgEl('stop',{offset:'100%','stop-color':colorVar(color),'stop-opacity':.03}));
+ let defs=svgEl('defs');defs.appendChild(grad);svg.appendChild(defs);
+ svg.appendChild(svgEl('path',{d:area,fill:`url(#grad_${id})`}));
+ svg.appendChild(svgEl('path',{d:line,fill:'none',stroke:colorVar(color),'stroke-width':3.2,'stroke-linecap':'round','stroke-linejoin':'round'}));
+ const skipEvery = rows.length>30?3:(rows.length>18?2:1);
+ rows.forEach((r,i)=>{
+  let c=svgEl('circle',{cx:x(i),cy:y(r[key]),r:3.2,fill:colorVar(color)});
+  c.appendChild(svgEl('title')).textContent=`${r.label}: ${fmt(r[key])} ${unit==='%'?'%':'t'}`;
+  svg.appendChild(c);
+  xLabel(svg,x(i),h-16,r.label, i%skipEvery!==0);
+ });
+}
+
+function multiLineChart(id,rows,parts,colors,unit,yearMarkers){
+ const el=clear(id),w=el.clientWidth||900,h=el.clientHeight||390,m={l:58,r:18,t:26,b:60};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(rows.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ let max=Math.max(1,...rows.map(r=>Math.max(...parts.map(p=>r[p]||0))))*1.18;
+ axes(svg,w,h,m,max,unit);
+ if(rows.length===1){
+  const r=rows[0];
+  const slot=(w-m.l-m.r)*0.5;
+  const gw=slot*.7/parts.length;
+  const startX=(m.l+(w-m.r))/2-slot/2;
+  parts.forEach((p,j)=>{
+   const hv=(r[p]||0)/max*(h-m.t-m.b);
+   const bx=startX+j*gw;
+   const rc=svgEl('rect',{x:bx,y:h-m.b-hv,width:gw*.86,height:Math.max(hv,0),rx:3,fill:colorVar(colors[p]),opacity:.92});
+   rc.appendChild(svgEl('title')).textContent=`${r.label} ${p}: ${fmt1(r[p]||0)}`;
+   svg.appendChild(rc);
+  });
+  xLabel(svg,(m.l+(w-m.r))/2,h-16,r.label,false);
+  return;
+ }
+ let x=i=>m.l+i*(w-m.l-m.r)/(rows.length-1);
+ let y=v=>h-m.b-v/max*(h-m.t-m.b);
+ if(yearMarkers) yearSeparators(svg,rows,m,h,i=>(x(i-1)+x(i))/2);
+ parts.forEach(p=>{
+  let pts=rows.map((r,i)=>({x:x(i),y:y(r[p]||0)}));
+  let line=catmullRomPath(pts);
+  svg.appendChild(svgEl('path',{d:line,fill:'none',stroke:colorVar(colors[p]),'stroke-width':2.6,'stroke-linecap':'round','stroke-linejoin':'round'}));
+  rows.forEach((r,i)=>{
+   let c=svgEl('circle',{cx:x(i),cy:y(r[p]||0),r:2.6,fill:colorVar(colors[p])});
+   c.appendChild(svgEl('title')).textContent=`${r.label} ${p}: ${fmt1(r[p]||0)} ${unit==='%'?'%':(unit==='u'?'':'t')}`;
+   svg.appendChild(c);
+  });
+ });
+ const skipEvery = rows.length>30?3:(rows.length>18?2:1);
+ rows.forEach((r,i)=>xLabel(svg,x(i),h-16,r.label, i%skipEvery!==0));
+}
+
+function stackedChart(id,rows,parts,colors,yearMarkers){
+ const el=clear(id),w=el.clientWidth||900,h=el.clientHeight||390,m={l:58,r:18,t:24,b:72};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(rows.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ let totals=rows.map(r=>parts.reduce((a,p)=>a+(r[p]||0),0));
+ let max=Math.max(1,...totals)*1.16;
+ let bw=(w-m.l-m.r)/rows.length*.66;
+ let x=i=>m.l+i*(w-m.l-m.r)/rows.length+((w-m.l-m.r)/rows.length-bw)/2;
+ let yh=v=>v/max*(h-m.t-m.b);
+ axes(svg,w,h,m,max);
+ if(yearMarkers) yearSeparators(svg,rows,m,h,i=>m.l+i*(w-m.l-m.r)/rows.length);
+ const skipEvery = rows.length>30?3:(rows.length>18?2:1);
+ rows.forEach((r,i)=>{
+  let base=h-m.b;
+  parts.forEach(p=>{
+   let hv=yh(r[p]||0);
+   let rc=svgEl('rect',{x:x(i),y:base-hv,width:bw,height:Math.max(hv,0),rx:3,fill:colorVar(colors[p]),opacity:.92});
+   rc.appendChild(svgEl('title')).textContent=`${r.label} ${p}: ${fmt(r[p]||0)} t`;
+   svg.appendChild(rc);
+   base-=hv;
+  });
+  xLabel(svg,x(i)+bw/2,h-28,r.label, i%skipEvery!==0);
+ });
+}
+
+function groupedBars(id,rows,parts,colors,unit,yearMarkers){
+ const el=clear(id),w=el.clientWidth||620,h=el.clientHeight||390,m={l:58,r:18,t:24,b:72};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(rows.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ let max=Math.max(1,...rows.map(r=>Math.max(...parts.map(p=>r[p]||0))))*1.2;
+ let slot=(w-m.l-m.r)/rows.length;
+ let gw=slot*.66/parts.length;
+ let x=(i,j)=>m.l+i*slot+(slot-slot*.66)/2+j*gw;
+ let yv=v=>v/max*(h-m.t-m.b);
+ axes(svg,w,h,m,max,unit||'u');
+ if(yearMarkers) yearSeparators(svg,rows,m,h,i=>m.l+i*slot);
+ const skipEvery = rows.length>30?3:(rows.length>18?2:1);
+ rows.forEach((r,i)=>{
+  parts.forEach((p,j)=>{
+   let hv=yv(r[p]||0);
+   let rc=svgEl('rect',{x:x(i,j),y:h-m.b-hv,width:gw*.88,height:Math.max(hv,0),rx:2,fill:colorVar(colors[p]),opacity:.92});
+   rc.appendChild(svgEl('title')).textContent=`${r.label} ${p}: ${fmt(r[p]||0)}`;
+   svg.appendChild(rc);
+  });
+  xLabel(svg,m.l+i*slot+slot/2,h-28,r.label, i%skipEvery!==0);
+ });
+}
+
+function donutChart(id,segments,centerLabel){
+ const el=clear(id),w=el.clientWidth||520,h=el.clientHeight||390;
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ const total=segments.reduce((a,s)=>a+s.value,0);
+ if(total<=0){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ const cx=w/2, cy=h/2-6, r=Math.min(w,h)*0.28, strokeW=r*0.62;
+ const circumference=2*Math.PI*r;
+ let acc=0;
+ segments.forEach(s=>{
+  const frac=s.value/total;
+  const dash=Math.max(frac*circumference-2,0);
+  const gap=circumference-dash;
+  const circle=svgEl('circle',{cx,cy,r,fill:'none',stroke:colorVar(s.color),'stroke-width':strokeW,'stroke-dasharray':`${dash} ${gap}`,'stroke-dashoffset':-acc,transform:`rotate(-90 ${cx} ${cy})`,'stroke-linecap':'round'});
+  circle.appendChild(svgEl('title')).textContent=`${s.label}: ${fmt1(frac*100)}% · ${fmt(s.value)} m³`;
+  svg.appendChild(circle);
+  const midDeg=(acc+dash/2)/circumference*360-90;
+  const rad=midDeg*Math.PI/180;
+  const lx=cx+(r)*Math.cos(rad), ly=cy+(r)*Math.sin(rad);
+  const t=svgEl('text',{x:lx,y:ly+4,'text-anchor':'middle',fill:'#fff','font-size':'13','font-weight':'800',stroke:colorVar('--bg') || '#111518','stroke-width':3,'paint-order':'stroke'});
+  t.textContent=fmt1(frac*100)+'%';
+  svg.appendChild(t);
+  acc+=dash+2;
+ });
+ const t1=svgEl('text',{x:cx,y:cy-4,'text-anchor':'middle',class:'tooltip-label','font-size':'20'});t1.textContent=fmtCompact(total).replace(' t','');
+ svg.appendChild(t1);
+ const t2=svgEl('text',{x:cx,y:cy+16,'text-anchor':'middle',class:'axis-title'});t2.textContent='m³ · '+(centerLabel||'total');
+ svg.appendChild(t2);
+}
+
+function buildTable(rows){
+ document.getElementById('dataTable').innerHTML=`<table><tr><th>Mes</th><th>Año</th><th>Total</th><th>Cerámico</th><th>Prensa</th><th>% Prensa</th><th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>Ciclos FP1</th><th>Ciclos FP2</th><th>Agua total</th></tr>${rows.map(d=>`<tr><td>${d.mes}</td><td>${d.ano}</td><td>${fmt(d.total)} t</td><td>${fmt(d.ceramico)} t</td><td>${fmt(d.prensa)} t</td><td>${fmt1(d.sharePrensa)}%</td><td>${fmt(d.f1)}</td><td>${fmt(d.f2)}</td><td>${fmt(d.f3)}</td><td>${fmt(d.f4)}</td><td>${fmt(d.ciclosFP1)}</td><td>${fmt(d.ciclosFP2)}</td><td>${fmt(d.aguaTotal)} m³</td></tr>`).join('')}</table>`;
+}
+
+function refresh(){
+ const rows=getFiltered();
+ const sum=(arr,k)=>arr.reduce((a,d)=>a+(d[k]||0),0);
+
+ set('k_total',fmt(sum(rows,'total'))+' t');
+ set('k_cer',fmt(sum(rows,'ceramico'))+' t');
+ set('k_press',fmt(sum(rows,'prensa'))+' t');
+ const share=sum(rows,'total')>0?sum(rows,'prensa')/sum(rows,'total')*100:0;
+ set('k_share',fmt1(share)+'%');
+ set('k_ciclos',fmt(sum(rows,'ciclosTotal')));
+ set('k_total_sub', rows.length?`${rows[0].label} – ${rows[rows.length-1].label}`:'Sin datos');
+ set('k_cer_sub', rows.length?`${rows[0].label} – ${rows[rows.length-1].label}`:'');
+
+ set('kp_total',fmt(sum(rows,'prensa'))+' t');
+ set('kp_total_sub', rows.length?`${rows[0].label} – ${rows[rows.length-1].label}`:'');
+ set('kp_ciclos',fmt(sum(rows,'ciclosTotal')));
+ set('kp_fp1',fmt(sum(rows,'ciclosFP1')));
+ set('kp_fp2',fmt(sum(rows,'ciclosFP2')));
+ const ciclosTot=sum(rows,'ciclosTotal');
+ set('kp_fp1_sub', ciclosTot?fmt1(sum(rows,'ciclosFP1')/ciclosTot*100)+'% del total':'');
+ set('kp_fp2_sub', ciclosTot?fmt1(sum(rows,'ciclosFP2')/ciclosTot*100)+'% del total':'');
+
+ buildTable(rows);
+ buildQuick(rows);
+ drawAll(rows);
+}
+
+function comboChart(id,rows,barKey,lineKey,barColor,yearMarkers,marker){
+ const el=clear(id),w=el.clientWidth||900,h=el.clientHeight||390,m={l:58,r:58,t:26,b:60};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(rows.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">No hay datos en el período seleccionado.</p>';return}
+ const maxBar=Math.max(1,...rows.map(d=>d[barKey]||0))*1.2;
+ const maxLine=Math.max(1,...rows.map(d=>d[lineKey]||0))*1.25;
+ const bw=(w-m.l-m.r)/rows.length*.55;
+ const xBar=i=>m.l+i*(w-m.l-m.r)/rows.length+((w-m.l-m.r)/rows.length-bw)/2;
+ const xPt=i=>rows.length>1? m.l+i*(w-m.l-m.r)/rows.length+((w-m.l-m.r)/rows.length)/2 : m.l+(w-m.l-m.r)/2;
+ const yBar=v=>h-m.b-v/maxBar*(h-m.t-m.b);
+ const yLine=v=>h-m.b-v/maxLine*(h-m.t-m.b);
+ axes(svg,w,h,m,maxBar);
+ for(let g=0;g<=4;g++){let yy=m.t+g*(h-m.t-m.b)/4;let tv=maxLine-maxLine*g/4;let t=svgEl('text',{x:w-m.r+8,y:yy+4,class:'tick'});t.textContent=fmt1(tv);svg.appendChild(t)}
+ if(yearMarkers) yearSeparators(svg,rows,m,h,i=>m.l+i*(w-m.l-m.r)/rows.length);
+ if(marker){
+  const idx=rows.findIndex(r=>r.key===marker.key);
+  if(idx>=0){
+   const xx=idx===0? m.l : m.l+idx*(w-m.l-m.r)/rows.length;
+   svg.appendChild(svgEl('line',{x1:xx,y1:m.t,x2:xx,y2:h-m.b,stroke:colorVar('--vivid'),'stroke-width':2,'stroke-dasharray':'7 5'}));
+   const lbl=svgEl('text',{x:xx+6,y:m.t+13,fill:colorVar('--vivid'),'font-size':'11','font-weight':'800'});lbl.textContent=marker.label;svg.appendChild(lbl);
+  }
+ }
+ const skipEvery=rows.length>30?3:(rows.length>18?2:1);
+ rows.forEach((r,i)=>{
+  const hv=Math.max(yBar(0)-yBar(r[barKey]||0),0);
+  const rc=svgEl('rect',{x:xBar(i),y:h-m.b-hv,width:bw,height:hv,rx:3,fill:colorVar(barColor),opacity:.85});
+  rc.appendChild(svgEl('title')).textContent=`${r.label}: ${fmt(r[barKey]||0)} t`;
+  svg.appendChild(rc);
+  xLabel(svg,xBar(i)+bw/2,h-16,r.label,i%skipEvery!==0);
+ });
+ const pts=rows.map((r,i)=>({x:xPt(i),y:yLine(r[lineKey]||0)}));
+ svg.appendChild(svgEl('path',{d:catmullRomPath(pts),fill:'none',stroke:colorVar('--vivid'),'stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'}));
+ rows.forEach((r,i)=>{
+  const c=svgEl('circle',{cx:xPt(i),cy:yLine(r[lineKey]||0),r:3.4,fill:colorVar('--vivid')});
+  c.appendChild(svgEl('title')).textContent=`${r.label}: ${fmt1(r[lineKey]||0)} t/h`;
+  svg.appendChild(c);
+ });
+}
+
+function renderFilterTab(n,rows,color){
+ const sum=(k)=>rows.reduce((a,d)=>a+(d[k]||0),0);
+ const avg=(k)=>rows.length? rows.reduce((a,d)=>a+(d[k]||0),0)/rows.length : 0;
+ set(`kf${n}_total`, fmt(sum('f'+n))+' t');
+ set(`kf${n}_total_sub`, rows.length?`${rows[0].label} – ${rows[rows.length-1].label}`:'');
+ set(`kf${n}_util`, fmt1(avg('util'+n))+'%');
+ set(`kf${n}_tph`, fmt1(avg('tph'+n))+' t/h');
+ set(`kf${n}_agua`, fmt(sum('agua'+n))+' m³');
+ lineChart(`chartFiltradoF${n}`, rows, 'f'+n, color, 't', true);
+ lineChart(`chartTasaF${n}`, rows, 'tph'+n, color, 'u', true);
+ lineChart(`chartUtilF${n}`, rows, 'util'+n, color, '%', true);
+ lineChart(`chartAguaF${n}`, rows, 'agua'+n, color, 't', true);
+}
+
+function renderCeramicoTab(rows){
+ const sum=(k)=>rows.reduce((a,d)=>a+(d[k]||0),0);
+ const avg=(k)=>rows.length? rows.reduce((a,d)=>a+(d[k]||0),0)/rows.length : 0;
+ set('kc_total', fmt(sum('ceramico'))+' t');
+ set('kc_total_sub', rows.length?`${rows[0].label} – ${rows[rows.length-1].label}`:'');
+ [1,2,3,4].forEach(n=>{
+  set(`kc_f${n}_total`, fmt(sum('f'+n))+' t');
+  set(`kc_f${n}_tph`, 'TPH '+fmt1(avg('tph'+n)));
+  set(`kc_f${n}_util`, 'Util '+fmt1(avg('util'+n))+'%');
+ });
+ lineChart('chartCerTotal', rows, 'ceramico', '--green', 't', true);
+ annualBars('chartCerAnnual', getFilteredByYear(), 'ceramico');
+ multiLineChart('chartByFilter',rows,['f1','f2','f3','f4'],{f1:'--cyan',f2:'--green',f3:'--amber',f4:'--violet'},'t',true);
+ multiLineChart('chartTph',rows,['tph1','tph2','tph3','tph4'],{tph1:'--cyan',tph2:'--green',tph3:'--amber',tph4:'--violet'},'u',true);
+ const avgUtilRows = rows.map(r=>({key:r.key, label:r.label, ano:r.ano, utilAvg: round1(((r.util1||0)+(r.util2||0)+(r.util3||0)+(r.util4||0))/4)}));
+ lineChart('chartUtilAvg', avgUtilRows, 'utilAvg', '--vivid', '%', true);
+ const aguaTotals=[
+  {label:'F1',value:rows.reduce((a,d)=>a+(d.agua1||0),0),color:'--cyan'},
+  {label:'F2',value:rows.reduce((a,d)=>a+(d.agua2||0),0),color:'--green'},
+  {label:'F3',value:rows.reduce((a,d)=>a+(d.agua3||0),0),color:'--amber'},
+  {label:'F4',value:rows.reduce((a,d)=>a+(d.agua4||0),0),color:'--violet'},
+ ];
+ donutChart('chartAgua',aguaTotals,'período filtrado');
+}
+
+const PLATE_CHANGES={
+ 1:{brand:'Roxia', date:'2026-04-24'},
+ 2:{brand:'Jointop', date:'2026-07-09'},
+ 3:{brand:'QL', date:'2026-05-30'},
+ 4:{brand:'Outotec Híbrida', date:'2025-08-21'},
+};
+function shiftMonthKey(key,delta){
+ let [y,m]=key.split('-').map(Number); m+=delta;
+ while(m<1){m+=12;y--;} while(m>12){m-=12;y++;}
+ return `${y}-${String(m).padStart(2,'0')}`;
+}
+function fmtDateEs(iso){
+ const [y,m,d]=iso.split('-').map(Number);
+ const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+ return `${d}-${meses[m-1]}-${y}`;
+}
+
+function parseDayFromFecha(fechaStr,knownMonth){
+ if(!fechaStr) return 1;
+ const nums=(String(fechaStr).match(/\d+/g)||[]).map(Number);
+ if(!nums.length) return 1;
+ const yearIdx=nums.findIndex(n=>n>31);
+ const rest=nums.filter((n,i)=>i!==yearIdx);
+ if(rest.length<2) return rest[0]||1;
+ if(rest[0]===knownMonth) return rest[1];
+ if(rest[1]===knownMonth) return rest[0];
+ return rest[0];
+}
+function rowDateUTC(r){
+ const ano=parseInt(r['AÑO']!==undefined?r['AÑO']:r['ANO'],10);
+ const mesRaw=(r['MES']||'').toString().trim().toLowerCase();
+ const mesNum=MES_MAP[mesRaw];
+ if(!ano||!mesNum) return null;
+ const day=parseDayFromFecha(r['FECHA'],mesNum);
+ return Date.UTC(ano,mesNum-1,day);
+}
+function addMonthsUTC(ms,delta){
+ const d=new Date(ms);
+ const y=d.getUTCFullYear(), m=d.getUTCMonth(), day=d.getUTCDate();
+ const nd=new Date(Date.UTC(y,m+delta,day));
+ return nd.getTime();
+}
+function weightedAvgTph(rowsArr,n){
+ let sw=0, sh=0;
+ rowsArr.forEach(r=>{
+  const h=numv(r['HORAS OPERACION FILTRO '+n]);
+  const t=numv(r['PROMEDIO TPH F'+n]);
+  if(h>0 && t>0){ sw+=t*h; sh+=h; }
+ });
+ return sh>0? sw/sh : null;
+}
+
+function buildDailySeries(rawRows,n,startMs,endMs){
+ const map={};
+ rawRows.forEach(r=>{
+  const ms=rowDateUTC(r); if(ms===null||ms<startMs||ms>endMs) return;
+  const h=numv(r['HORAS OPERACION FILTRO '+n]), t=numv(r['PROMEDIO TPH F'+n]);
+  if(!(h>0 && t>0)) return;
+  const dstr=new Date(ms).toISOString().slice(0,10);
+  if(!map[dstr]) map[dstr]={sw:0,sh:0,ms};
+  map[dstr].sw+=t*h; map[dstr].sh+=h;
+ });
+ const keys=Object.keys(map).sort();
+ return keys.map(k=>{
+  const d=new Date(map[k].ms);
+  const y=d.getUTCFullYear(), m=d.getUTCMonth()+1, day=d.getUTCDate();
+  return {key:k, label:`${String(day).padStart(2,'0')}-${MES_LABELS[m]}`, ano:y, tph:round1(map[k].sw/map[k].sh)};
+ });
+}
+
+function renderPlateChangeTab(){
+ [1,2,3,4].forEach(n=>{
+  const info=PLATE_CHANGES[n];
+  const changeKey=info.date.slice(0,7);
+  document.getElementById(`cp${n}_tag`).textContent=`${info.brand} · cambio ${fmtDateEs(info.date)}`;
+  const startKey=shiftMonthKey(changeKey,-2);
+  const chRows=DATA.filter(d=>d.key>=startKey);
+
+  let avgB=null, avgA=null, usingChangeMonth=false, exact=false;
+  if(RAW_ROWS){
+   exact=true;
+   const [cy,cm,cd]=info.date.split('-').map(Number);
+   const changeMs=Date.UTC(cy,cm-1,cd);
+   const beforeStart=addMonthsUTC(changeMs,-2);
+   const beforeEnd=changeMs-86400000;
+   const beforeRows=RAW_ROWS.filter(r=>{const ms=rowDateUTC(r); return ms!==null && ms>=beforeStart && ms<=beforeEnd;});
+   const afterRows=RAW_ROWS.filter(r=>{const ms=rowDateUTC(r); return ms!==null && ms>=changeMs;});
+   avgB=weightedAvgTph(beforeRows,n);
+   avgA=weightedAvgTph(afterRows,n);
+  } else {
+   const before=DATA.filter(d=>d.key<changeKey).slice(-2);
+   let after=DATA.filter(d=>d.key>changeKey).slice(-2);
+   if(after.length===0){
+    const chMonth=DATA.find(d=>d.key===changeKey);
+    if(chMonth){ after=[chMonth]; usingChangeMonth=true; }
+   }
+   avgB=before.length? before.reduce((a,d)=>a+d['tph'+n],0)/before.length : null;
+   avgA=after.length? after.reduce((a,d)=>a+d['tph'+n],0)/after.length : null;
+  }
+
+  const box=document.getElementById(`cp${n}_stats`);
+  let changeTxt='';
+  if(avgB!==null && avgA!==null && avgB>0){
+   const chg=(avgA-avgB)/avgB*100;
+   changeTxt=`<div class="d ${chg>=0?'pos':'bad'}">${chg>=0?'▲':'▼'} ${fmt1(Math.abs(chg))}% vs. antes</div>`;
+  }
+  let tagTxt = exact ? (RAW_ROWS_LIVE ? ' (desde el día del cambio)' : ' (desde el día del cambio, datos de respaldo sin conexión)') : (usingChangeMonth ? ' (mes del cambio, incluye días previos)' : '');
+  box.innerHTML=`<div class="miniStat"><div class="l">TPH · 2 meses antes del cambio</div><div class="v">${avgB!==null?fmt1(avgB)+' t/h':'Sin datos'}</div></div>
+   <div class="miniStat"><div class="l">TPH · actual${tagTxt}</div><div class="v">${avgA!==null?fmt1(avgA)+' t/h':'Sin datos aún'}</div>${changeTxt}</div>`;
+  if(RAW_ROWS){
+   const [cy2,cm2,cd2]=info.date.split('-').map(Number);
+   const changeMs2=Date.UTC(cy2,cm2-1,cd2);
+   const dailyStart=addMonthsUTC(changeMs2,-2);
+   const dailyEnd=Date.now();
+   const dailyRows=buildDailySeries(RAW_ROWS,n,dailyStart,dailyEnd);
+   const changeDayKey=new Date(changeMs2).toISOString().slice(0,10);
+   lineChart(`chartCambioF${n}`, dailyRows, 'tph', ['--cyan','--green','--amber','--violet'][n-1], 'u', true, {key:changeDayKey,label:`Cambio placas ${info.brand}`});
+  } else {
+   lineChart(`chartCambioF${n}`, chRows, 'tph'+n, ['--cyan','--green','--amber','--violet'][n-1], 'u', true, {key:changeKey,label:`Cambio placas ${info.brand}`});
+  }
+ });
+}
+
+function drawAll(rows){
+ const active=document.querySelector('.panel.on').id;
+ if(active==='resumen'){
+  lineChart('chartTotal',rows,'total','--cyan','t',true);
+  annualBars('chartAnnual',getFilteredByYear());
+ }
+ if(active==='ceramico') renderCeramicoTab(rows);
+ if(active==='f1') renderFilterTab(1,rows,'--cyan');
+ if(active==='f2') renderFilterTab(2,rows,'--green');
+ if(active==='f3') renderFilterTab(3,rows,'--amber');
+ if(active==='f4') renderFilterTab(4,rows,'--violet');
+ if(active==='cambio') renderPlateChangeTab();
+ if(active==='fechas') renderFechasTab();
+ if(active==='prensa'){
+  const fp=DATA.find(d=>d.prensa>0);
+  const pressRows = fp? rows.filter(d=>d.key>=fp.key) : rows;
+  const usable = pressRows.length>=2 ? pressRows : rows;
+  lineChart('chartPressTotal', usable,'prensa','--amber','t',true);
+  groupedBars('chartCycles', pressRows.length?pressRows:rows, ['ciclosFP1','ciclosFP2'], {ciclosFP1:'--cyan',ciclosFP2:'--green'},'u',true);
+ }
+}
+
+function annualBars(id,rows,key){
+ key=key||'total';
+ const years=[...new Set(rows.map(d=>d.ano))].sort();
+ const agg=years.map(y=>({label:String(y),total:rows.filter(d=>d.ano===y).reduce((a,d)=>a+(d[key]||0),0)}));
+ const el=clear(id),w=el.clientWidth||520,h=el.clientHeight||350,m={l:58,r:18,t:34,b:40};
+ const svg=svgEl('svg',{width:'100%',height:'100%',viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'none'});el.appendChild(svg);
+ if(agg.length<1){el.innerHTML='<p style="color:var(--dim);font-size:13px;padding:20px">Sin datos.</p>';return}
+ let max=Math.max(1,...agg.map(d=>d.total))*1.22;
+ let bw=(w-m.l-m.r)/agg.length*.5;
+ let x=i=>m.l+i*(w-m.l-m.r)/agg.length+((w-m.l-m.r)/agg.length-bw)/2;
+ let yh=v=>v/max*(h-m.t-m.b);
+ axes(svg,w,h,m,max);
+ agg.forEach((r,i)=>{
+  let hv=yh(r.total);
+  let rc=svgEl('rect',{x:x(i),y:h-m.b-hv,width:bw,height:Math.max(hv,0),rx:4,fill:colorVar('--vivid'),opacity:.92});
+  rc.appendChild(svgEl('title')).textContent=`${r.label}: ${fmt(r.total)} t`;
+  svg.appendChild(rc);
+  let vy=Math.max(h-m.b-hv-8, m.t+10);
+  let vt=svgEl('text',{x:x(i)+bw/2,y:vy,'text-anchor':'middle',class:'tooltip-label',fill:colorVar('--vivid')});
+  vt.textContent=fmtCompact(r.total);
+  svg.appendChild(vt);
+  let tx=svgEl('text',{x:x(i)+bw/2,y:h-m.b+18,'text-anchor':'middle',class:'tick'});tx.textContent=r.label;svg.appendChild(tx);
+ });
+}
+
+function buildQuick(rows){
+ const box=document.getElementById('quick');
+ if(!rows.length){box.innerHTML='<p style="color:var(--dim);font-size:13px">Sin datos en el período.</p>';return}
+ const closedRows = rows.filter(d=>d.key!==OPEN_MONTH_KEY);
+ const base = closedRows.length ? closedRows : rows;
+ const withData=base.filter(d=>d.total>0);
+ const peak=withData.length?withData.reduce((a,d)=>d.total>a.total?d:a,withData[0]):base[0];
+ const lastClosed=base[base.length-1];
+ let trendTxt='Datos insuficientes', trendClass='warn';
+ if(base.length>=6){
+  const last3=base.slice(-3), prev3=base.slice(-6,-3);
+  const avgLast=last3.reduce((a,d)=>a+d.total,0)/3, avgPrev=prev3.reduce((a,d)=>a+d.total,0)/3;
+  if(avgPrev>0){
+   const chg=(avgLast-avgPrev)/avgPrev*100;
+   trendClass = chg>=0?'pos':'bad';
+   trendTxt = `${chg>=0?'▲':'▼'} ${fmt1(Math.abs(chg))}% (últimos 3 meses cerrados vs 3 anteriores)`;
+  }
+ }
+ box.innerHTML=`<table><tr><th>Indicador</th><th>Valor</th></tr>
+ <tr><td>Mejor mes</td><td class="pos">${peak.label} · ${fmt(peak.total)} t</td></tr>
+ <tr><td>Tendencia reciente</td><td class="${trendClass}">${trendTxt}</td></tr>
+ <tr><td>Aporte prensa (último mes cerrado)</td><td class="warn">${lastClosed?lastClosed.label+' · '+fmt1(lastClosed.sharePrensa)+'%':'Sin datos'}</td></tr>
+ </table>`;
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');
+ document.getElementById(b.dataset.tab).classList.add('on');
+ setTimeout(()=>drawAll(getFiltered()),40);
+}));
+
+document.getElementById('refreshBtn').addEventListener('click',()=>loadData(true));
+loadData(false);
+setInterval(()=>loadData(false), 5*60*1000);
+window.addEventListener('resize',()=>setTimeout(()=>drawAll(getFiltered()),80));
+</script>
+</body>
+</html>
